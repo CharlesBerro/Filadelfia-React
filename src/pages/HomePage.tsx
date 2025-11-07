@@ -44,7 +44,7 @@ export const HomePage: React.FC = () => {
                 onClick={handleDashboard}
                 variant="primary"
               >
-                Ir al Dashboard
+                🗓️ Ir al Dashboard
               </Button >
               <Button
                 onClick={handleLogout}
