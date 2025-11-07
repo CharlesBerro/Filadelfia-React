@@ -1,20 +1,21 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { validators } from '@/utils/validators'
 import { useAuthStore } from '@/stores/authStore'
-import { useNavigate } from 'react-router-dom'
-
+import { AuthService } from '@/services/auth.service'
 
 export const LoginPage: React.FC = () => {
+  const navigate = useNavigate()
+  
   // Estados
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
   const [generalError, setGeneralError] = useState('')
-  const navigate = useNavigate()
 
   // Obtener funciones del store
   const { setUser, setToken } = useAuthStore()
@@ -46,39 +47,36 @@ export const LoginPage: React.FC = () => {
     setIsLoading(true)
 
     try {
-      // AQUÍ CONECTAREMOS SUPABASE DESPUÉS
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      // Simulación de usuario logueado
-      const mockUser = {
-        id: '123',
-        email: email,
-        nombre: 'Usuario',
-        apellido: 'Test',
-        rol: 'usuario' as const,
-        sede: 'Sede Principal',
-        created_at: new Date().toISOString(),
-      }
+      // CONECTAR A SUPABASE REAL
+      const result = await AuthService.login(email, password)
 
       // Guardar en store
-      setUser(mockUser)
-      setToken('mock-token-' + Date.now())
+      setUser(result.user)
+      setToken(result.token)
 
-      // Mostrar éxito
-      console.log('✅ Login exitoso (mock)')
+      console.log('✅ Login exitoso')
 
-      // Después usaremos React Router para esto
+      // Redirigir a dashboard
       navigate('/dashboard')
 
     } catch (error: any) {
-      setGeneralError(error.message || 'Error al iniciar sesión')
       console.error('Error:', error)
+      
+      // Mostrar error específico
+      if (error.message.includes('Invalid login credentials')) {
+        setGeneralError('Email o contraseña incorrectos')
+      } else if (error.message.includes('User not found')) {
+        setGeneralError('Usuario no registrado')
+      } else {
+        setGeneralError(error.message || 'Error al iniciar sesión')
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen  from-blue-50 via-white to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -131,7 +129,7 @@ export const LoginPage: React.FC = () => {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Demo: Email y contraseña pueden ser cualquiera</p>
+          <p>¿No tienes cuenta? <button onClick={() => navigate('/signup')} className="text-blue-600 hover:underline">Regístrate aquí</button></p>
         </div>
       </Card>
     </div>
