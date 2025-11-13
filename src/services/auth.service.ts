@@ -12,36 +12,52 @@ export class AuthService {
         email,
         password,
       })
-
+  
       if (error) {
         throw new Error(error.message)
       }
-
+  
       if (!data.session) {
         throw new Error('No se obtuvo sesión')
       }
-
-      // 2. Obtener datos del usuario desde tabla 'users'
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
+  
+      // 2. Obtener datos del usuario desde tabla profiles
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          full_name,
+          role,
+          sede_id,
+          sedes:sede_id(nombre_sede, lider)
+        `)
         .eq('id', data.user.id)
         .single()
-
-      if (userError) {
-        console.warn('Usuario en auth pero no en tabla users')
+  
+      if (profileError) {
+        throw new Error('Error obteniendo perfil: ' + profileError.message)
       }
-
-      // 3. Retornar datos completos
+  
+      if (!profileData) {
+        throw new Error('Perfil no encontrado')
+      }
+  
+      // 3. Obtener información de la sede
+      const sedeInfo = Array.isArray(profileData.sedes)
+        ? profileData.sedes[0]
+        : profileData.sedes
+  
+      // 4. Retornar datos completos
       return {
         user: {
-          id: data.user.id,
+          id: profileData.id,
           email: data.user.email || '',
-          nombre: userData?.nombre || 'Usuario',
-          apellido: userData?.apellido || '',
-          rol: userData?.rol || 'usuario',
-          sede: userData?.sede || 'Principal',
-          created_at: data.user.created_at || new Date().toISOString(),
+          full_name: profileData.full_name || 'Usuario',
+          rol: profileData.role as 'admin' | 'usuario' | 'contador',
+          sede_id: profileData.sede_id,
+          sede_nombre: sedeInfo?.nombre_sede || 'Sin sede',
+          sede_lider: sedeInfo?.lider || 'Sin asignar',
+          created_at: data.user.created_at,
         },
         token: data.session.access_token,
       }

@@ -26,7 +26,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "types":["vite/client"]
     /* --- FIN DE LA SECCIÓN A AÑADIR --- */
   },
   "include": ["src"],

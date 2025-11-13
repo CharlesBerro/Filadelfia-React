@@ -1,92 +1,141 @@
+// Usuario autenticado
 export interface User {
   id: string
   email: string
-  nombre: string
-  apellido: string
-  rol: 'admin' | 'usuario'
-  sede: string
+  full_name: string
+  rol: 'admin' | 'usuario' | 'contador'
+  sede_id: string
+  sede_nombre?: string
+  sede_lider?: string
   created_at: string
 }
 
-export interface Municipio {
-  id: string
-  nombre: string
-}
-
-export interface Departamento {
-  id: string
-  nombre: string
-  ciudades: Municipio[]
-}
-
+// Persona completa (desde BD)
 export interface Persona {
   id: string
-  created_at: string
-  nombres: string
-  primer_apellido: string
-  segundo_apellido?: string
-  tipo_id: string
-  numero_id: string
-  fecha_nacimiento: string
-  edad?: string
-  genero: string
-  telefono: string
-  email: string
-  direccion: string
-  url_foto?: string
   user_id: string
-  sede_id: string
-  estado_civil: string
-  departamento: string
-  municipio: string
-  bautizado: boolean
-  sedes?: { nombre_sede: string; direccion_sede: string }
-  persona_escala?: Array<{ escala_de_crecimiento: { nombre_escala: string } }>
-  persona_ministerios?: Array<{ ministerios: { id: string; nombre_minist: string } }>
-}
-
-export interface NuevaPersona {
-  nombres: string
-  primer_apellido: string
-  segundo_apellido?: string
   tipo_id: string
   numero_id: string
+  nombres: string
+  primer_apellido: string
+  segundo_apellido?: string | null
   fecha_nacimiento: string
-  edad?: string
   genero: string
-  telefono: string
-  email: string
-  direccion: string
-  url_foto?: string
-  sede_id: string
   estado_civil: string
+  telefono: string
+  email?: string | null
+  direccion?: string | null
   departamento: string
   municipio: string
+  barrio?: string | null
+  ocupacion?: string | null
+  nivel_educativo: string
   bautizado: boolean
-  ministerios?: string[]
+  fecha_bautismo?: string | null
+  ministerio?: string | null
+  escala_crecimiento: number
+  observaciones?: string | null
+  url_foto?: string | null
+  created_at: string
+  updated_at: string
 }
 
+// Para crear persona (sin id, user_id, timestamps)
+export interface PersonaCreate {
+  tipo_id: string
+  numero_id: string
+  nombres: string
+  primer_apellido: string
+  segundo_apellido?: string | null
+  fecha_nacimiento: string
+  genero: string
+  estado_civil: string
+  telefono: string
+  email?: string | null
+  direccion?: string | null
+  departamento: string
+  municipio: string
+  barrio?: string | null
+  ocupacion?: string | null
+  nivel_educativo: string
+  bautizado: boolean
+  fecha_bautismo?: string | null
+  ministerio?: string | null
+  escala_crecimiento: number
+  observaciones?: string | null
+  url_foto?: string | null
+}
+
+// Para actualizar persona
+export interface PersonaUpdate extends Partial<PersonaCreate> {}
+
+// Transacción
 export interface Transaccion {
   id: string
-  fecha: string
-  monto: number
-  tipo: 'ingreso' | 'egreso'
-  categoria_id: string
   user_id: string
+  tipo: 'ingreso' | 'egreso'
+  monto: number
+  categoria_id: string
+  descripcion?: string | null
+  fecha: string
   created_at: string
+  updated_at: string
 }
 
+// Categoría
 export interface Categoria {
   id: string
+  user_id: string
   nombre: string
   tipo: 'ingreso' | 'egreso'
   created_at: string
 }
 
+// Actividad
 export interface Actividad {
   id: string
-  nombre: string
-  estado: 'planeada' | 'en_curso' | 'completada'
   user_id: string
+  titulo: string
+  descripcion?: string | null
+  fecha: string
+  created_at: string
+}
+
+// Ministerio
+export interface Ministerio {
+  id: string
+  nombre: string
+  descripcion?: string | null
+  created_at: string
+}
+
+// Escala de Crecimiento
+export interface EscalaCrecimiento {
+  id: string
+  nombre: string
+  orden: number
+  descripcion?: string | null
+  created_at: string
+}
+
+// Relación Persona-Ministerio
+export interface PersonaMinisterio {
+  id: string
+  persona_id: string
+  ministerio_id: string
+  fecha_inicio: string
+  fecha_fin?: string | null
+  activo: boolean
+  created_at: string
+}
+
+// Relación Persona-Escala
+export interface PersonaEscala {
+  id: string
+  persona_id: string
+  escala_id: string
+  fecha_inicio: string
+  fecha_fin?: string | null
+  completado: boolean
   created_at: string
 }
