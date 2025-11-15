@@ -1,10 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
+// Mantener compatibilidad de imports antiguos reusando el mismo cliente
+// principal definido en '@/lib/supabase'.
+import { supabase as libSupabase } from '@/lib/supabase'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Variables de entorno de Supabase no configuradas')
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = libSupabase

@@ -121,8 +121,8 @@ export interface EscalaCrecimiento {
 // Relación Persona-Ministerio
 export interface PersonaMinisterio {
   id: string
-  persona_id: string
-  ministerio_id: string
+  id_persona: string
+  id_ministerio: string
   fecha_inicio: string
   fecha_fin?: string | null
   activo: boolean

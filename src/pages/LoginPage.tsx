@@ -96,10 +96,11 @@ export const LoginPage: React.FC = () => {
           {/* Email Input */}
           <Input
             label="Email"
+            name="email"
             type="email"
             placeholder="tu@email.com"
             value={email}
-            onChange={setEmail}
+            onChange={(e) => setEmail(e.target.value)}
             error={errors.email}
             required
           />
@@ -107,10 +108,11 @@ export const LoginPage: React.FC = () => {
           {/* Password Input */}
           <Input
             label="Contraseña"
+            name="password"
             type="password"
             placeholder="••••••••"
             value={password}
-            onChange={setPassword}
+            onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
             required
           />

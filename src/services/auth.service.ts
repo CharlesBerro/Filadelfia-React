@@ -1,4 +1,4 @@
-import { supabase } from '@/config/supabase'
+import { supabase } from '@/lib/supabase'
 import type { User } from '@/types'
 
 export class AuthService {

@@ -12,7 +12,7 @@ export class EscalasService {
       const { data, error } = await supabase
         .from('escala_de_crecimiento')
         .select('*')
-        .order('orden', { ascending: true })
+        .order('nombre_escala', { ascending: true })
 
       if (error) throw error
 
@@ -29,14 +29,13 @@ export class EscalasService {
   static async obtenerPorPersona(personaId: string): Promise<EscalaCrecimiento[]> {
     try {
       const { data, error } = await supabase
-        .from('persona_escalas')
+        .from('persona_escala')
         .select(`
           escala_id,
           escala_de_crecimiento (
-            id,
-            nombre,
-            orden,
-            descripcion
+            escala_id,
+            nombre_escala
+           
           )
         `)
         .eq('persona_id', personaId)
@@ -61,7 +60,7 @@ export class EscalasService {
     try {
       // 1. Desactivar todas las escalas actuales
       await supabase
-        .from('persona_escalas')
+        .from('persona_escala')
         .update({ completado: false })
         .eq('persona_id', personaId)
 
@@ -75,7 +74,7 @@ export class EscalasService {
         }))
 
         const { error } = await supabase
-          .from('persona_escalas')
+          .from('persona_escala')
           .insert(registros)
 
         if (error) throw error

@@ -105,10 +105,11 @@ export const SignupPage: React.FC = () => {
           {/* Nombre Input */}
           <Input
             label="Nombre"
+            name="nombre"
             type="text"
             placeholder="Tu nombre"
             value={nombre}
-            onChange={setNombre}
+            onChange={(e) => setNombre(e.target.value)}
             error={errors.nombre}
             required
           />
@@ -116,10 +117,11 @@ export const SignupPage: React.FC = () => {
           {/* Email Input */}
           <Input
             label="Email"
+            name="email"
             type="email"
             placeholder="tu@email.com"
             value={email}
-            onChange={setEmail}
+            onChange={(e) => setEmail(e.target.value)}
             error={errors.email}
             required
           />
@@ -127,10 +129,11 @@ export const SignupPage: React.FC = () => {
           {/* Password Input */}
           <Input
             label="Contraseña"
+            name="password"
             type="password"
             placeholder="••••••••"
             value={password}
-            onChange={setPassword}
+            onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
             required
           />

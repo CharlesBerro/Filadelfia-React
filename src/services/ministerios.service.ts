@@ -22,7 +22,7 @@ export class MinisteriosService {
       const { data, error } = await supabase
         .from('ministerios')
         .select('*')
-        .order('nombre', { ascending: true })
+        .order('id_ministerio', { ascending: true })
 
       if (error) throw error
 
@@ -35,29 +35,27 @@ export class MinisteriosService {
 
   /**
    * Obtener ministerios de una persona
+   * Columnas reales: id_persona, id_ministerio
    */
   static async obtenerPorPersona(personaId: string): Promise<Ministerio[]> {
     try {
       const { data, error } = await supabase
         .from('persona_ministerios')
         .select(`
-          ministerio_id,
-          ministerios (
-            id,
-            nombre,
-            descripcion
+          id_ministerio,
+          ministerios:id_ministerio (
+       
           )
         `)
-        .eq('persona_id', personaId)
-        .eq('activo', true)
+        .eq('id_persona', personaId)
 
       if (error) throw error
 
       // Transformar los datos
-      return (data || []).map((item: any) => item.ministerios)
+      return (data || []).map((item: any) => item.ministerios).filter(Boolean)
     } catch (error) {
       console.error('Error obteniendo ministerios de persona:', error)
-      throw error
+      return [] // Retornar array vacío en caso de error
     }
   }
 
@@ -69,19 +67,17 @@ export class MinisteriosService {
     ministeriosIds: string[]
   ): Promise<void> {
     try {
-      // 1. Desactivar todos los ministerios actuales
+      // 1. Eliminar ministerios actuales
       await supabase
         .from('persona_ministerios')
-        .update({ activo: false })
-        .eq('persona_id', personaId)
+        .delete()
+        .eq('id_persona', personaId)
 
       // 2. Insertar nuevos ministerios
       if (ministeriosIds.length > 0) {
         const registros = ministeriosIds.map((ministerioId) => ({
-          persona_id: personaId,
-          ministerio_id: ministerioId,
-          fecha_inicio: new Date().toISOString(),
-          activo: true,
+          id_persona: personaId,
+          id_ministerio: ministerioId,
         }))
 
         const { error } = await supabase
