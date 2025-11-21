@@ -11,12 +11,18 @@ export class EscalasService {
     try {
       const { data, error } = await supabase
         .from('escala_de_crecimiento')
-        .select('*')
+        .select('id, nombre_escala, created_at')
         .order('nombre_escala', { ascending: true })
 
       if (error) throw error
 
-      return (data || []) as EscalaCrecimiento[]
+      // Mapear columnas reales de BD -> interfaz EscalaCrecimiento
+      return (data || []).map((row: any) => ({
+        id: row.id,
+        nombre: row.nombre_escala,
+        
+        created_at: row.created_at ?? '',
+      })) as EscalaCrecimiento[]
     } catch (error) {
       console.error('Error obteniendo escalas:', error)
       throw error
@@ -33,17 +39,26 @@ export class EscalasService {
         .select(`
           escala_id,
           escala_de_crecimiento (
-            escala_id,
-            nombre_escala
-           
+            id,
+            nombre_escala,
+
+            created_at
           )
         `)
         .eq('persona_id', personaId)
-        .eq('completado', true)
+       
 
       if (error) throw error
 
-      return (data || []).map((item: any) => item.escala_de_crecimiento)
+      return (data || [])
+        .map((item: any) => item.escala_de_crecimiento)
+        .filter(Boolean)
+        .map((row: any) => ({
+          id: row.id,
+          nombre: row.nombre_escala,
+         
+          created_at: row.created_at ?? '',
+        })) as EscalaCrecimiento[]
     } catch (error) {
       console.error('Error obteniendo escalas de persona:', error)
       throw error
@@ -58,19 +73,17 @@ export class EscalasService {
     escalasIds: string[]
   ): Promise<void> {
     try {
-      // 1. Desactivar todas las escalas actuales
+      // 1. Limpiar relaciones actuales de esta persona
       await supabase
         .from('persona_escala')
-        .update({ completado: false })
+        .delete()
         .eq('persona_id', personaId)
 
-      // 2. Insertar nuevas escalas
+      // 2. Insertar nuevas relaciones persona-escala
       if (escalasIds.length > 0) {
         const registros = escalasIds.map((escalaId) => ({
           persona_id: personaId,
-          escala_id: escalaId,
-          fecha_inicio: new Date().toISOString(),
-          completado: true,
+          escala_id: escalaId, // FK hacia escala_de_crecimiento.id
         }))
 
         const { error } = await supabase

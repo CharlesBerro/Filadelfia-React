@@ -9,6 +9,7 @@ import {
   Settings,
   Home,
   X,
+  Tag,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -24,6 +25,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/dashboard' },
     { icon: Users, label: 'Personas', path: '/personas' },
+    { icon: Tag, label: 'Categorías', path: '/categorias' },
     { icon: TrendingUp, label: 'Transacciones', path: '/transacciones' },
     { icon: Activity, label: 'Actividades', path: '/actividades' },
     { icon: BarChart3, label: 'Reportes', path: '/reportes' },
@@ -55,14 +57,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Sidebar */}
       <aside
-      className={`fixed lg:static top-0 left-0 h-screen w-64 bg-white shadow-lg lg:shadow-none lg:border-r lg:border-green-200 transform transition-transform duration-300 z-40 ${
+      className={`fixed lg:static top-0 left-0 h-screen w-64 bg-gradient-to-b from-green-50 to-white shadow-lg lg:shadow-none lg:border-r lg:border-green-200 transform transition-transform duration-300 z-40 ${
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}
       >
         {/* Close button mobile */}
         <button
           onClick={onClose}
-          className="lg:hidden absolute top-4 right-4 p-2 hover:bg-primary-100 rounded-lg"
+          className="lg:hidden absolute top-4 right-4 p-2 hover:bg-primary-500 rounded-lg"
         >
           <X className="w-6 h-6 text-gray-600" />
         </button>

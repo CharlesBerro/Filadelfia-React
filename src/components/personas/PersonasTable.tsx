@@ -5,7 +5,7 @@ import { PersonasService } from '@/services/personas.service'
 import { MinisteriosService } from '@/services/ministerios.service'
 import { EscalasService } from '@/services/escalas_services'
 import { usePersonasStore } from '@/stores/personas.store'
-import { Eye, Edit2, Trash2, ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
+import { Eye, Edit2, Trash2, ChevronLeft, ChevronRight, Search, X, AlertTriangle } from 'lucide-react'
 import type { Persona, Ministerio, EscalaCrecimiento } from '@/types'
 
 /**
@@ -25,6 +25,12 @@ export const PersonasTable: React.FC = () => {
   // PAGINACIÓN
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+
+  // ESTADO eliminación (modal + loading + mensaje)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Persona | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteSuccessMsg, setDeleteSuccessMsg] = useState<string | null>(null)
 
   // FILTROS
   const [filtros, setFiltros] = useState({
@@ -122,15 +128,26 @@ export const PersonasTable: React.FC = () => {
   const fin = inicio + itemsPerPage
   const personasPaginadas = personasFiltradas.slice(inicio, fin)
 
-  const handleEliminar = async (id: string) => {
-    if (!window.confirm('¿Eliminar esta persona?')) return
+  const openDeleteModal = (persona: Persona) => {
+    setDeleteTarget(persona)
+    setShowDeleteModal(true)
+    setDeleteSuccessMsg(null)
+  }
 
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return
     try {
-      await PersonasService.eliminar(id)
-      removePersona(id)
+      setDeletingId(deleteTarget.id)
+      await PersonasService.eliminar(deleteTarget.id)
+      removePersona(deleteTarget.id)
+      setShowDeleteModal(false)
+      setDeleteSuccessMsg('El registro a sido eliminado')
+      setDeletingId(null)
     } catch (error) {
       console.error('Error:', error)
       alert('Error al eliminar persona')
+      setDeletingId(null)
+      setShowDeleteModal(false)
     }
   }
 
@@ -175,6 +192,20 @@ export const PersonasTable: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      {/* Mensaje de éxito eliminación */}
+      {deleteSuccessMsg && (
+        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-lg flex items-center justify-between text-sm">
+          <span>{deleteSuccessMsg}</span>
+          <button
+            type="button"
+            className="text-xs underline"
+            onClick={() => setDeleteSuccessMsg(null)}
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
+
       {/* FILTROS */}
       <div className="bg-white rounded-xl shadow-md p-4 border border-green-100">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -419,7 +450,7 @@ export const PersonasTable: React.FC = () => {
                         <Edit2 className="w-5 h-5" />
                       </button>
                       <button
-                        onClick={() => handleEliminar(persona.id)}
+                        onClick={() => openDeleteModal(persona)}
                         className="p-2 hover:bg-red-50 rounded-lg text-red-600 transition"
                         title="Eliminar"
                       >
@@ -467,6 +498,48 @@ export const PersonasTable: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de confirmación de eliminación */}
+      {showDeleteModal && deleteTarget && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Eliminar persona</h3>
+                <p className="text-sm text-gray-600">
+                  Esta acción no se puede deshacer. ¿Seguro que deseas eliminar a{' '}
+                  <span className="font-semibold">
+                    {deleteTarget.nombres} {deleteTarget.primer_apellido}
+                  </span>
+                  ?
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <button
+                type="button"
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 w-full text-sm"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={!!deletingId}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 w-full text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                onClick={handleConfirmDelete}
+                disabled={!!deletingId}
+              >
+                {deletingId ? 'Eliminando...' : 'Sí, eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

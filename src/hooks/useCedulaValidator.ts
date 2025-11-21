@@ -1,19 +1,13 @@
 // src/hooks/useCedulaValidator.ts
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
 /**
- * Hook personalizado para validar cédula en tiempo real
- * 
- * ¿Qué hace?
- * - Espera 1 segundo después de que el usuario deja de escribir (debounce)
- * - Consulta la BD para ver si existe la cédula
- * - Retorna el estado de validación
- * 
- * ¿Por qué usar debounce?
- * - Evita hacer una consulta por cada letra que escribe el usuario
- * - Ahorra recursos del servidor
- * - Mejora la experiencia del usuario
+ * Hook para validar cédula de forma MANUAL (al presionar un botón).
+ *
+ * La validación ya NO se hace en tiempo real ni con debounce.
+ * El componente llama a `validarCedula(cedula)` cuando el usuario presiona
+ * el botón "Verificar".
  */
 
 interface CedulaValidation {
@@ -22,83 +16,95 @@ interface CedulaValidation {
   mensaje: string        // Mensaje para mostrar al usuario
 }
 
-export const useCedulaValidator = (cedula: string) => {
+export const useCedulaValidator = () => {
   const [validation, setValidation] = useState<CedulaValidation>({
     isValidating: false,
     existe: false,
     mensaje: '',
   })
 
-  useEffect(() => {
-    // Si la cédula está vacía o muy corta, no validar
-    if (!cedula || cedula.length < 6) {
-      setValidation({ isValidating: false, existe: false, mensaje: '' })
-      return
+  /**
+   * Ejecuta la validación de la cédula de forma manual.
+   * Retorna true si la cédula está disponible, false si ya existe o hay error.
+   */
+  const validarCedula = async (cedula: string): Promise<boolean> => {
+    // Reset básico
+    if (!cedula || cedula.trim().length < 6) {
+      setValidation({
+        isValidating: false,
+        existe: false,
+        mensaje: 'Debe tener al menos 6 dígitos',
+      })
+      return false
     }
 
-    // DEBOUNCE: Esperar 1 segundo después de que el usuario deja de escribir
-    const timer = setTimeout(async () => {
-      setValidation({ isValidating: true, existe: false, mensaje: 'Verificando...' })
+    setValidation({ isValidating: true, existe: false, mensaje: 'Verificando...' })
 
-      try {
-        // 1. Obtener usuario actual
-        const { data: { user } } = await supabase.auth.getUser()
+    try {
+      // 1. Obtener usuario actual
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
-        if (!user) {
-          setValidation({ 
-            isValidating: false, 
-            existe: false, 
-            mensaje: 'No autenticado' 
-          })
-          return
-        }
-
-        // 2. Buscar si existe la cédula
-        const { data, error } = await supabase
-          .from('personas')
-          .select('id, nombres, primer_apellido')
-          .eq('numero_id', cedula)
-          .eq('user_id', user.id)
-          .maybeSingle() // Usar maybeSingle() en lugar de single()
-
-        if (error) {
-          console.error('Error validando cédula:', error)
-          setValidation({ 
-            isValidating: false, 
-            existe: false, 
-            mensaje: '' 
-          })
-          return
-        }
-
-        // 3. Si existe, mostrar error
-        if (data) {
-          setValidation({
-            isValidating: false,
-            existe: true,
-            mensaje: `⚠️ Ya existe: ${data.nombres} ${data.primer_apellido}`,
-          })
-        } else {
-          // 4. Si no existe, todo bien
-          setValidation({
-            isValidating: false,
-            existe: false,
-            mensaje: '✅ Cédula disponible',
-          })
-        }
-      } catch (error) {
-        console.error('Error:', error)
-        setValidation({ 
-          isValidating: false, 
-          existe: false, 
-          mensaje: '' 
+      if (!user) {
+        setValidation({
+          isValidating: false,
+          existe: false,
+          mensaje: 'No autenticado',
         })
+        return false
       }
-    }, 1000) // Esperar 1 segundo
 
-    // CLEANUP: Limpiar el timer si el usuario sigue escribiendo
-    return () => clearTimeout(timer)
-  }, [cedula]) // Se ejecuta cada vez que cambia la cédula
+      // 2. Buscar si existe la cédula en toda la tabla (sin filtrar por user_id)
+      const { data, error } = await supabase
+        .from('persona')
+        .select('id, nombres, primer_apellido, user_id')
+        .eq('numero_id', cedula)
+        .maybeSingle()
 
-  return validation
+      if (error) {
+        console.error('Error validando cédula:', error)
+        setValidation({
+          isValidating: false,
+          existe: false,
+          mensaje: 'Error al verificar cédula',
+        })
+        return false
+      }
+
+      // 3. Si existe, mostrar error diferenciando si es del mismo usuario u otro
+      if (data) {
+        const mismaCuenta = data.user_id === user.id
+        setValidation({
+          isValidating: false,
+          existe: true,
+          mensaje: mismaCuenta
+            ? `⚠️ Ya existe registrada para este usuario: ${data.nombres} ${data.primer_apellido}`
+            : '⚠️ Ya está en la base de datos con otro usuario',
+        })
+        return false
+      }
+
+      // 4. Si no existe en ninguna cuenta, está disponible
+      setValidation({
+        isValidating: false,
+        existe: false,
+        mensaje: '✅ Cédula disponible',
+      })
+      return true
+    } catch (error) {
+      console.error('Error:', error)
+      setValidation({
+        isValidating: false,
+        existe: false,
+        mensaje: 'Error inesperado al verificar',
+      })
+      return false
+    }
+  }
+
+  return {
+    validation,
+    validarCedula,
+  }
 }

@@ -4,9 +4,23 @@ import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
 import { DashboardPage } from '@/pages/DashboardPage'
-import { NuevaPersonaPage } from '@/pages/NuevaPersonaPage'
-import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 import { PersonasPage } from '@/pages/PersonasPage'
+import { NuevaPersonaPage } from '@/pages/NuevaPersonaPage'
+import { PersonaDetallePage } from '@/pages/PersonaDetallePage'
+import { EditarPersonaPage } from '@/pages/EditarPersonaPage'
+import { CategoriasPage } from '@/pages/CategoriasPage'
+import { NuevaCategoriaPage } from '@/pages/NuevaCategoriaPage'
+import { EditarCategoriaPage } from '@/pages/EditarCategoriaPage'
+import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
+import { ActividadesPage } from '@/pages/ActividadesPage'
+import { NuevaActividadPage } from '@/pages/NuevaActividadPage'
+import { EditarActividadPage } from '@/pages/EditarActividadPage'
+import { ActividadDetallePage } from '@/pages/ActividadDetallePage'
+import { TransaccionesPage } from '@/pages/TransaccionesPage'
+import { NuevaTransaccionPage } from '@/pages/NuevaTransaccionPage'
+import { EditarTransaccionPage } from '@/pages/EditarTransaccionPage'
+import { TransaccionDetallePage } from '@/pages/TransaccionDetallePage'
+
 export const AppRoutes: React.FC = () => {
   return (
     <BrowserRouter>
@@ -15,11 +29,8 @@ export const AppRoutes: React.FC = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/" element={<HomePage />} />
 
-
-
-        {/* Protegidas */}
+        {/* Protegidas - Dashboard */}
         <Route
           path="/dashboard"
           element={
@@ -29,7 +40,7 @@ export const AppRoutes: React.FC = () => {
           }
         />
 
-        {/* Personas */}
+        {/* Protegidas - Personas */}
         <Route
           path="/personas"
           element={
@@ -43,15 +54,16 @@ export const AppRoutes: React.FC = () => {
           path="/personas/nueva"
           element={
             <ProtectedRoute>
-             <NuevaPersonaPage/>
+              <NuevaPersonaPage />
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/personas/:id"
           element={
             <ProtectedRoute>
-              <div>Detalle Persona (próximamente)</div>
+              <PersonaDetallePage />
             </ProtectedRoute>
           }
         />
@@ -60,14 +72,114 @@ export const AppRoutes: React.FC = () => {
           path="/personas/:id/editar"
           element={
             <ProtectedRoute>
-              <div>Editar Persona (próximamente)</div>
+              <EditarPersonaPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Protegidas - Categorías */}
+        <Route
+          path="/categorias"
+          element={
+            <ProtectedRoute>
+              <CategoriasPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/categorias/nueva"
+          element={
+            <ProtectedRoute>
+              <NuevaCategoriaPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/categorias/:id/editar"
+          element={
+            <ProtectedRoute>
+              <EditarCategoriaPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/actividades"
+          element={
+            <ProtectedRoute>
+              <ActividadesPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/actividades/nueva"
+          element={
+            <ProtectedRoute>
+              <NuevaActividadPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/actividades/:id"
+          element={
+            <ProtectedRoute>
+              <ActividadDetallePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/actividades/:id/editar"
+          element={
+            <ProtectedRoute>
+              <EditarActividadPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Protegidas - Transacciones */}
+        <Route
+          path="/transacciones"
+          element={
+            <ProtectedRoute>
+              <TransaccionesPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/transacciones/nueva"
+          element={
+            <ProtectedRoute>
+              <NuevaTransaccionPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/transacciones/:id"
+          element={
+            <ProtectedRoute>
+              <TransaccionDetallePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/transacciones/:id/editar"
+          element={
+            <ProtectedRoute>
+              <EditarTransaccionPage />
             </ProtectedRoute>
           }
         />
 
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
-
       </Routes>
     </BrowserRouter>
   )

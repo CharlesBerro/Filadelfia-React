@@ -21,12 +21,18 @@ export class MinisteriosService {
     try {
       const { data, error } = await supabase
         .from('ministerios')
-        .select('*')
-        .order('id_ministerio', { ascending: true })
+        .select('id, nombre_minist, created_at')
+        .order('nombre_minist', { ascending: true })
 
       if (error) throw error
 
-      return (data || []) as Ministerio[]
+      // Mapear columnas reales de BD -> interfaz Ministerio
+      return (data || []).map((row: any) => ({
+        id: row.id,
+        nombre: row.nombre_minist,
+        
+        created_at: row.created_at ?? '',
+      })) as Ministerio[]
     } catch (error) {
       console.error('Error obteniendo ministerios:', error)
       throw error
@@ -43,16 +49,27 @@ export class MinisteriosService {
         .from('persona_ministerios')
         .select(`
           id_ministerio,
-          ministerios:id_ministerio (
-       
+          ministerios (
+            id,
+            nombre_minist,
+
+            created_at
           )
         `)
         .eq('id_persona', personaId)
 
       if (error) throw error
 
-      // Transformar los datos
-      return (data || []).map((item: any) => item.ministerios).filter(Boolean)
+      // Transformar los datos a la interfaz Ministerio
+      return (data || [])
+        .map((item: any) => item.ministerios)
+        .filter(Boolean)
+        .map((row: any) => ({
+          id: row.id,
+          nombre: row.nombre_minist,
+         
+          created_at: row.created_at ?? '',
+        })) as Ministerio[]
     } catch (error) {
       console.error('Error obteniendo ministerios de persona:', error)
       return [] // Retornar array vacío en caso de error

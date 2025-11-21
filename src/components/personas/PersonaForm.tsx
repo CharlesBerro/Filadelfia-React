@@ -23,6 +23,7 @@ export const PersonaForm: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [ministerios, setMinisterios] = useState<Ministerio[]>([])
   const [escalas, setEscalas] = useState<EscalaCrecimiento[]>([])
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success'>('idle')
   
   // 🔑 PASO 1: Verificación de cédula
   const [cedulaVerificada, setCedulaVerificada] = useState(false)
@@ -50,11 +51,10 @@ export const PersonaForm: React.FC = () => {
     fecha_bautismo: null,
     ministerio: null,
     escala_crecimiento: 1,
-    observaciones: '',
     url_foto: null,
   })
 
-  const cedulaValidation = useCedulaValidator(formData.numero_id)
+  const { validation: cedulaValidation, validarCedula } = useCedulaValidator()
 
   useEffect(() => {
     cargarDatos()
@@ -90,23 +90,24 @@ export const PersonaForm: React.FC = () => {
     }
   }
 
-  const handleVerificarCedula = () => {
+  const handleVerificarCedula = async () => {
     if (!formData.numero_id.trim()) {
       setErrors({ numero_id: 'Ingresa un número de identificación' })
       return
     }
 
-    if (formData.numero_id.length < 6) {
-      setErrors({ numero_id: 'Debe tener al menos 6 dígitos' })
+    // Ejecutar validación manual contra Supabase
+    const disponible = await validarCedula(formData.numero_id.trim())
+
+    if (!disponible) {
+      // Si no está disponible, marcamos error en el campo si ya existe
+      if (cedulaValidation.existe) {
+        setErrors({ numero_id: 'Esta cédula ya está registrada' })
+      }
       return
     }
 
-    if (cedulaValidation.existe) {
-      setErrors({ numero_id: 'Esta cédula ya está registrada' })
-      return
-    }
-
-    // ✅ Cédula verificada, continuar
+    // ✅ Cédula verificada y disponible, continuar al formulario completo
     setCedulaVerificada(true)
   }
 
@@ -150,6 +151,7 @@ export const PersonaForm: React.FC = () => {
     if (!validar()) return
 
     setLoading(true)
+    setSaveStatus('saving')
 
     try {
       const nuevaPersona = await PersonasService.crear(formData)
@@ -163,10 +165,16 @@ export const PersonaForm: React.FC = () => {
       }
 
       addPersona(nuevaPersona)
-      navigate('/personas')
+
+      // Mostrar spinner de éxito antes de redirigir
+      setSaveStatus('success')
+      setTimeout(() => {
+        navigate('/personas')
+      }, 1500)
     } catch (error: any) {
       console.error('Error:', error)
       alert(error.message || 'Error al crear persona')
+      setSaveStatus('idle')
     } finally {
       setLoading(false)
     }
@@ -263,7 +271,15 @@ export const PersonaForm: React.FC = () => {
   // ✅ PASO 2: Formulario completo (cédula verificada)
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-4">
-      {loading && <LoadingSpinner fullScreen text="Guardando persona..." />}
+      {saveStatus === 'saving' && (
+        <LoadingSpinner fullScreen text="Guardando persona..." />
+      )}
+      {saveStatus === 'success' && (
+        <div className="fixed inset-0 bg-white bg-opacity-90 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-3">
+          <CheckCircle2 className="w-16 h-16 text-green-600" />
+          <p className="text-lg font-semibold text-gray-800">Guardado con éxito</p>
+        </div>
+      )}
 
       {/* Header compacto */}
       <div className="flex items-center justify-between sticky top-0 bg-white z-10 pb-4">
@@ -557,7 +573,8 @@ export const PersonaForm: React.FC = () => {
                     className="w-4 h-4 text-green-600 border-green-300 rounded"
                   />
                   <span className="text-xs text-gray-700">
-                    {e.orden}. {e.nombre}
+                    {/* {e.orden}. {e.nombre} */}
+                    {e.nombre}
                   </span>
                 </label>
               ))}
