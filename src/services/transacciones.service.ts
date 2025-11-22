@@ -33,7 +33,7 @@ export class TransaccionesService {
         *,
         categoria:categorias(id, nombre, tipo),
         actividad:actividades(id, nombre, meta),
-        persona:personas(id, nombres, primer_apellido, segundo_apellido)
+        persona:persona(id, nombres, primer_apellido, segundo_apellido)
       `)
             .order('fecha', { ascending: false })
             .order('created_at', { ascending: false })
@@ -92,7 +92,7 @@ export class TransaccionesService {
         *,
         categoria:categorias(id, nombre, tipo),
         actividad:actividades(id, nombre, meta),
-        persona:personas(id, nombres, primer_apellido, segundo_apellido)
+        persona:persona(id, nombres, primer_apellido, segundo_apellido)
       `)
             .eq('id', id)
             .single()
@@ -125,10 +125,19 @@ export class TransaccionesService {
         // Generar número de transacción
         const numeroTransaccion = await this.generarNumeroTransaccion(transaccionData.tipo)
 
+        // Sanitizar datos: convertir strings vacíos a null para campos UUID opcionales
+        const dataSanitizada = {
+            ...transaccionData,
+            actividad_id: transaccionData.actividad_id || null,
+            persona_id: transaccionData.persona_id || null,
+            evidencia: transaccionData.evidencia || null,
+            descripcion: transaccionData.descripcion || null,
+        }
+
         const { data, error } = await supabase
             .from('transacciones')
             .insert({
-                ...transaccionData,
+                ...dataSanitizada,
                 user_id: user.id,
                 numero_transaccion: numeroTransaccion,
                 estado: 'activa',
@@ -137,7 +146,7 @@ export class TransaccionesService {
         *,
         categoria:categorias(id, nombre, tipo),
         actividad:actividades(id, nombre, meta),
-        persona:personas(id, nombres, primer_apellido, segundo_apellido)
+        persona:persona(id, nombres, primer_apellido, segundo_apellido)
       `)
             .single()
 
@@ -174,15 +183,22 @@ export class TransaccionesService {
             throw new Error('El monto debe ser mayor a 0')
         }
 
+        // Sanitizar datos: convertir strings vacíos a null para campos UUID opcionales
+        const dataSanitizada: any = { ...transaccionData }
+        if (dataSanitizada.actividad_id === '') dataSanitizada.actividad_id = null
+        if (dataSanitizada.persona_id === '') dataSanitizada.persona_id = null
+        if (dataSanitizada.evidencia === '') dataSanitizada.evidencia = null
+        if (dataSanitizada.descripcion === '') dataSanitizada.descripcion = null
+
         const { data, error } = await supabase
             .from('transacciones')
-            .update(transaccionData)
+            .update(dataSanitizada)
             .eq('id', id)
             .select(`
         *,
         categoria:categorias(id, nombre, tipo),
         actividad:actividades(id, nombre, meta),
-        persona:personas(id, nombres, primer_apellido, segundo_apellido)
+        persona:persona(id, nombres, primer_apellido, segundo_apellido)
       `)
             .single()
 
@@ -229,7 +245,7 @@ export class TransaccionesService {
         *,
         categoria:categorias(id, nombre, tipo),
         actividad:actividades(id, nombre, meta),
-        persona:personas(id, nombres, primer_apellido, segundo_apellido)
+        persona:persona(id, nombres, primer_apellido, segundo_apellido)
       `)
             .single()
 

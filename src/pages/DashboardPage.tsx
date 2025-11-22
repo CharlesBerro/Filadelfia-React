@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Heart, MapPin, Users, Calendar } from 'lucide-react'
 import { CumpleanosCard } from '@/components/common/CumpleanosCard'
+import { CumpleanosHoyCard } from '@/components/common/CumpleanosHoyCard'
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuthStore()
@@ -81,8 +82,8 @@ export const DashboardPage: React.FC = () => {
                     {user?.rol === 'admin'
                       ? 'Administrador'
                       : user?.rol === 'contador'
-                      ? 'Contador'
-                      : 'Usuario'}
+                        ? 'Contador'
+                        : 'Usuario'}
                   </p>
                 </div>
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
@@ -107,10 +108,15 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
             </Card>
-            {/* Cumpleaños */}
-              <div className="lg:col-span-2">
-                <CumpleanosCard />
-              </div>
+
+          </div>
+          {/* Sección de Cumpleaños */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            {/*  Cumpleaños de Hoy */}
+            <CumpleanosHoyCard />
+
+            {/* Próximos Cumpleaños */}
+            <CumpleanosCard />
           </div>
 
           {/* Accesos Rápidos */}

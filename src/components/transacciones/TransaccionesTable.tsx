@@ -113,37 +113,37 @@ export const TransaccionesTable: React.FC = () => {
     return (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-max text-sm">
                     <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                N° Transacción
+                            <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
+                                N° Trans.
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                 Fecha
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                 Monto
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                 Tipo
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                 Categoría
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                 Actividad
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                 Persona
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider max-w-xs">
                                 Descripción
                             </th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                 Estado
                             </th>
-                            <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            <th className="px-3 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">
                                 Acciones
                             </th>
                         </tr>
@@ -160,39 +160,39 @@ export const TransaccionesTable: React.FC = () => {
                                     onClick={() => navigate(`/transacciones/${transaccion.id}`)}
                                 >
                                     {/* N° Transacción */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-2">
                                         <p className="font-mono font-semibold text-gray-900">
                                             {transaccion.numero_transaccion}
                                         </p>
                                     </td>
 
                                     {/* Fecha */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-2">
                                         <p className="text-gray-900">{formatDate(transaccion.fecha)}</p>
                                     </td>
 
                                     {/* Monto */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-2">
                                         <p className={`font-semibold ${transaccion.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600'}`}>
                                             {formatCurrency(transaccion.monto)}
                                         </p>
                                     </td>
 
                                     {/* Tipo */}
-                                    <td className="px-6 py-4">{getTipoBadge(transaccion.tipo)}</td>
+                                    <td className="px-3 py-2">{getTipoBadge(transaccion.tipo)}</td>
 
                                     {/* Categoría */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-2">
                                         <p className="text-gray-900">{transaccion.categoria?.nombre || '-'}</p>
                                     </td>
 
                                     {/* Actividad */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-2">
                                         <p className="text-gray-900">{transaccion.actividad?.nombre || '-'}</p>
                                     </td>
 
                                     {/* Persona */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-2">
                                         {transaccion.persona ? (
                                             <p className="text-gray-900">
                                                 {transaccion.persona.nombres} {transaccion.persona.primer_apellido}
@@ -203,17 +203,17 @@ export const TransaccionesTable: React.FC = () => {
                                     </td>
 
                                     {/* Descripción */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-2">
                                         <p className="text-gray-600 truncate max-w-xs">
                                             {transaccion.descripcion || '-'}
                                         </p>
                                     </td>
 
                                     {/* Estado */}
-                                    <td className="px-6 py-4">{getEstadoBadge(transaccion.estado)}</td>
+                                    <td className="px-3 py-2">{getEstadoBadge(transaccion.estado)}</td>
 
                                     {/* Acciones */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-3 py-2">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={(e) => {

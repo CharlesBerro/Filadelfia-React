@@ -76,7 +76,10 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
 
     // Búsqueda de persona con debounce
     useEffect(() => {
-        if (personaSearch.length < 3) {
+        // Activar búsqueda si tiene al menos 3 caracteres O si termina con espacio
+        const shouldSearch = personaSearch.length >= 3 || (personaSearch.length > 0 && personaSearch.endsWith(' '))
+
+        if (!shouldSearch) {
             setPersonas([])
             return
         }
@@ -127,24 +130,28 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
     const buscarPersona = async () => {
         setSearchingPersona(true)
         try {
+            // Limpiar espacios extras y buscar
+            const searchTerm = personaSearch.trim()
+
             const { data, error } = await supabase
-                .from('personas')
+                .from('persona')
                 .select('*')
-                .or(`nombres.ilike.%${personaSearch}%,primer_apellido.ilike.%${personaSearch}%,segundo_apellido.ilike.%${personaSearch}%,numero_id.ilike.%${personaSearch}%`)
+                .or(`nombres.ilike.%${searchTerm}%,primer_apellido.ilike.%${searchTerm}%,segundo_apellido.ilike.%${searchTerm}%,numero_id.ilike.%${searchTerm}%`)
                 .limit(10)
 
             if (error) throw error
             setPersonas(data || [])
         } catch (error) {
             console.error('Error buscando persona:', error)
+            setPersonas([])
         } finally {
             setSearchingPersona(false)
         }
     }
 
     const seleccionarPersona = (persona: Persona) => {
-        setPersonaSeleccionada(persona)
         setValue('persona_id', persona.id)
+        setPersonaSeleccionada(persona)
         setPersonaSearch(`${persona.nombres} ${persona.primer_apellido} ${persona.segundo_apellido || ''}`.trim())
         setPersonas([])
     }
@@ -154,6 +161,7 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
             style: 'currency',
             currency: 'COP',
             minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
         }).format(value)
     }
 
@@ -282,9 +290,18 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
                             ))}
                         </div>
                     )}
+
+                    {/* Mensaje cuando no hay resultados */}
+                    {!searchingPersona && personaSearch.trim().length >= 3 && personas.length === 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4">
+                            <p className="text-sm text-gray-600 text-center">
+                                No se encuentra la persona "{personaSearch.trim()}"
+                            </p>
+                        </div>
+                    )}
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
-                    Escribe al menos 3 caracteres para buscar. La búsqueda se activa después de 1 segundo.
+                    Escribe al menos 3 caracteres o termina con espacio para buscar por nombre, apellidos o documento.
                 </p>
             </div>
 
@@ -331,7 +348,7 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
                     })}
                     type="number"
                     id="monto"
-                    step="1000"
+                    step="0.01"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="25000"
                     disabled={isLoading}

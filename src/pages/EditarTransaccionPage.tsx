@@ -8,6 +8,7 @@ import { useTransaccionesStore } from '@/stores/transacciones.store'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ArrowLeft, Receipt } from 'lucide-react'
 import type { TransaccionUpdate } from '@/types/transacciones'
+import { SavingOverlay } from '@/components/ui/SavingOverlay'
 
 /**
  * Página para editar transacción existente
@@ -20,6 +21,7 @@ export const EditarTransaccionPage: React.FC = () => {
     const [isLoadingData, setIsLoadingData] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [transaccion, setTransaccion] = useState<any>(null)
+    const [isSuccess, setIsSuccess] = useState(false)
 
     useEffect(() => {
         if (id) {
@@ -37,7 +39,19 @@ export const EditarTransaccionPage: React.FC = () => {
                 return
             }
 
-            setTransaccion(data)
+            // Transformar datos para el formulario: extraer solo IDs de las relaciones
+            const transaccionParaEditar = {
+                fecha: data.fecha,
+                tipo: data.tipo,
+                monto: data.monto,
+                categoria_id: data.categoria_id,
+                actividad_id: data.actividad_id || '',
+                persona_id: data.persona_id || '',
+                descripcion: data.descripcion || '',
+                evidencia: data.evidencia || '',
+            }
+
+            setTransaccion(transaccionParaEditar)
         } catch (error: any) {
             setError(error.message || 'Error al cargar transacción')
         } finally {
@@ -55,8 +69,10 @@ export const EditarTransaccionPage: React.FC = () => {
             console.log('📤 Actualizando transacción:', data)
             const transaccionActualizada = await TransaccionesService.actualizar(id, data)
             updateTransaccion(id, transaccionActualizada)
-            console.log('✅ Transacción actualizada exitosamente')
-            navigate('/transacciones')
+            setIsSuccess(true)
+            setTimeout(() => {
+                navigate('/transacciones')
+            }, 1500)
         } catch (error: any) {
             console.error('❌ Error actualizando transacción:', error)
             setError(error.message || 'Error al actualizar transacción')
@@ -141,6 +157,12 @@ export const EditarTransaccionPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+            <SavingOverlay
+                isLoading={isLoading}
+                isSuccess={isSuccess}
+                loadingText="Actualizando transacción..."
+                successText="¡Transacción actualizada exitosamente!"
+            />
         </Layout>
     )
 }
