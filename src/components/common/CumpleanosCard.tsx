@@ -11,14 +11,33 @@ export const CumpleanosCard: React.FC = () => {
     const cargarCumpleanios = async () => {
       try {
         const datos = await PersonasService.obtenerProximosCumpleanos()
-        setProximosCumpleanios(datos.slice(0, 3)) // Top 3 próximos
+
+        // Excluir cumpleaños de HOY (solo mostrar próximos)
+        const hoy = new Date()
+        hoy.setHours(0, 0, 0, 0)
+
+        const soloProximos = datos.filter(persona => {
+          if (!persona.fecha_nacimiento) return false
+
+          const fechaNac = new Date(persona.fecha_nacimiento)
+          const cumpleanosEsteAno = new Date(
+            hoy.getFullYear(),
+            fechaNac.getMonth(),
+            fechaNac.getDate()
+          )
+          cumpleanosEsteAno.setHours(0, 0, 0, 0)
+
+          // Excluir si es HOY (solo queremos próximos)
+          return cumpleanosEsteAno.getTime() !== hoy.getTime()
+        })
+
+        setProximosCumpleanios(soloProximos.slice(0, 3)) // Top 3 próximos
       } catch (error) {
         console.error('Error:', error)
       } finally {
         setLoading(false)
       }
     }
-
     cargarCumpleanios()
   }, [])
 
@@ -78,11 +97,10 @@ export const CumpleanosCard: React.FC = () => {
             return (
               <div
                 key={persona.id}
-                className={`flex items-center justify-between p-3 rounded-lg border-2 transition ${
-                  estaProximo
+                className={`flex items-center justify-between p-3 rounded-lg border-2 transition ${estaProximo
                     ? 'bg-green-50 border-green-300'
                     : 'bg-gray-50 border-gray-200'
-                }`}
+                  }`}
               >
                 <div className="flex-1">
                   <p className="font-semibold text-gray-900 text-sm">
@@ -97,11 +115,10 @@ export const CumpleanosCard: React.FC = () => {
                 </div>
 
                 <div
-                  className={`text-right px-3 py-1 rounded-lg font-bold text-sm ${
-                    estaProximo
+                  className={`text-right px-3 py-1 rounded-lg font-bold text-sm ${estaProximo
                       ? 'bg-green-600 text-white'
                       : 'bg-gray-200 text-gray-700'
-                  }`}
+                    }`}
                 >
                   {diasRestantes === 0 ? '¡Hoy!' : `${diasRestantes}d`}
                 </div>

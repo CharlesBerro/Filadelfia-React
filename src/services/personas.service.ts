@@ -48,6 +48,7 @@ export class PersonasService {
     try {
       const personas = await this.obtenerMias()
       const hoy = new Date()
+      hoy.setHours(0, 0, 0, 0)
       const dentro30 = new Date(hoy.getTime() + 30 * 24 * 60 * 60 * 1000)
 
       return personas
@@ -60,6 +61,7 @@ export class PersonasService {
             fecha.getMonth(),
             fecha.getDate()
           )
+          cumpleanosEsteAno.setHours(0, 0, 0, 0)
 
           // Si ya pasó este año, buscar el próximo
           if (cumpleanosEsteAno < hoy) {
