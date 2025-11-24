@@ -8,6 +8,8 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Button } from '@/components/ui/Button'
 import { ArrowLeft, Edit2, Calendar, FileText, Target } from 'lucide-react'
 import type { Actividad } from '@/types'
+import { ActividadTransaccionesList } from '@/components/actividades/ActividadTransaccionesList'
+import { TransaccionesService } from '@/services/transacciones.service'
 
 /**
  * Página de detalle de actividad
@@ -24,6 +26,7 @@ export const ActividadDetallePage: React.FC = () => {
     const [progreso, setProgreso] = useState({ recaudado: 0, meta: 0, porcentaje: 0 })
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [transacciones, setTransacciones] = useState<any[]>([])
 
     useEffect(() => {
         if (id) {
@@ -33,13 +36,15 @@ export const ActividadDetallePage: React.FC = () => {
 
     const cargarDatos = async () => {
         try {
-            const [actividadData, progresoData] = await Promise.all([
+            const [actividadData, progresoData, transaccionesData] = await Promise.all([
                 ActividadesService.obtenerPorId(id!),
                 ActividadesService.calcularProgreso(id!),
+                TransaccionesService.obtenerTodas({ actividad_id: id })
             ])
 
             setActividad(actividadData)
             setProgreso(progresoData)
+            setTransacciones(transaccionesData)
         } catch (error: any) {
             setError(error.message || 'Error al cargar actividad')
         } finally {
@@ -182,16 +187,23 @@ export const ActividadDetallePage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Transacciones - Próxima fase */}
+                            {/* Transacciones */}
                             <div className="bg-white rounded-xl shadow-sm p-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                                    Transacciones Relacionadas
-                                </h2>
-                                <div className="text-center py-8">
-                                    <p className="text-gray-500">
-                                        Las transacciones se mostrarán en la siguiente fase
-                                    </p>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-lg font-semibold text-gray-900">
+                                        Transacciones Relacionadas
+                                    </h2>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={() => navigate('/transacciones/nueva')}
+                                    >
+                                        Nueva Transacción
+                                    </Button>
                                 </div>
+                                <ActividadTransaccionesList
+                                    transacciones={transacciones}
+                                    isLoading={false}
+                                />
                             </div>
                         </div>
 

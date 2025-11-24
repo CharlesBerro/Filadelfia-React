@@ -19,13 +19,23 @@ export const CumpleanosCard: React.FC = () => {
         const soloProximos = datos.filter(persona => {
           if (!persona.fecha_nacimiento) return false
 
-          const fechaNac = new Date(persona.fecha_nacimiento)
+          // Parsear manualmente para evitar problemas de zona horaria
+          const fechaStr = persona.fecha_nacimiento.includes('T')
+            ? persona.fecha_nacimiento.split('T')[0]
+            : persona.fecha_nacimiento
+          const [anio, mes, dia] = fechaStr.split('-').map(Number)
+
           const cumpleanosEsteAno = new Date(
             hoy.getFullYear(),
-            fechaNac.getMonth(),
-            fechaNac.getDate()
+            mes - 1,
+            dia
           )
           cumpleanosEsteAno.setHours(0, 0, 0, 0)
+
+          // Si ya pasó hoy, es el próximo año
+          if (cumpleanosEsteAno < hoy) {
+            cumpleanosEsteAno.setFullYear(hoy.getFullYear() + 1)
+          }
 
           // Excluir si es HOY (solo queremos próximos)
           return cumpleanosEsteAno.getTime() !== hoy.getTime()
@@ -43,12 +53,17 @@ export const CumpleanosCard: React.FC = () => {
 
   const calcularDiasRestantes = (fecha: string): number => {
     const hoy = new Date()
-    const cumpleanos = new Date(fecha)
+    hoy.setHours(0, 0, 0, 0)
+
+    const fechaStr = fecha.includes('T') ? fecha.split('T')[0] : fecha
+    const [anio, mes, dia] = fechaStr.split('-').map(Number)
+
     const cumpleanosEsteAno = new Date(
       hoy.getFullYear(),
-      cumpleanos.getMonth(),
-      cumpleanos.getDate()
+      mes - 1,
+      dia
     )
+    cumpleanosEsteAno.setHours(0, 0, 0, 0)
 
     if (cumpleanosEsteAno < hoy) {
       cumpleanosEsteAno.setFullYear(hoy.getFullYear() + 1)
@@ -98,8 +113,8 @@ export const CumpleanosCard: React.FC = () => {
               <div
                 key={persona.id}
                 className={`flex items-center justify-between p-3 rounded-lg border-2 transition ${estaProximo
-                    ? 'bg-green-50 border-green-300'
-                    : 'bg-gray-50 border-gray-200'
+                  ? 'bg-green-50 border-green-300'
+                  : 'bg-gray-50 border-gray-200'
                   }`}
               >
                 <div className="flex-1">
@@ -116,8 +131,8 @@ export const CumpleanosCard: React.FC = () => {
 
                 <div
                   className={`text-right px-3 py-1 rounded-lg font-bold text-sm ${estaProximo
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-200 text-gray-700'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-200 text-gray-700'
                     }`}
                 >
                   {diasRestantes === 0 ? '¡Hoy!' : `${diasRestantes}d`}

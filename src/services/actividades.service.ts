@@ -313,15 +313,15 @@ export class ActividadesService {
             const { user: authUser } = useAuthStore.getState()
             const esAdmin = authUser?.rol === 'admin'
 
-            // TODO: En la siguiente fase, verificar si hay transacciones asociadas
-            // const { count } = await supabase
-            //   .from('transacciones_actividades')
-            //   .select('id', { count: 'exact', head: true })
-            //   .eq('actividad_id', id)
-            // 
-            // if (count && count > 0) {
-            //   throw new Error('No se puede eliminar porque tiene transacciones asociadas')
-            // }
+            // Verificar si hay transacciones asociadas
+            const { count } = await supabase
+                .from('transacciones')
+                .select('id', { count: 'exact', head: true })
+                .eq('actividad_id', id)
+
+            if (count && count > 0) {
+                throw new Error('No se puede eliminar porque tiene transacciones asociadas')
+            }
 
             // Construir query
             let query = supabase
@@ -364,15 +364,15 @@ export class ActividadesService {
             // Obtener la actividad para conocer la meta
             const actividad = await this.obtenerPorId(actividadId)
 
-            // TODO: En la siguiente fase, sumar transacciones
-            // const { data: transacciones } = await supabase
-            //   .from('transacciones_actividades')
-            //   .select('monto')
-            //   .eq('actividad_id', actividadId)
-            // 
-            // const recaudado = transacciones?.reduce((sum, t) => sum + t.monto, 0) || 0
+            // Sumar transacciones de tipo ingreso y estado activa
+            const { data: transacciones } = await supabase
+                .from('transacciones')
+                .select('monto')
+                .eq('actividad_id', actividadId)
+                .eq('tipo', 'ingreso')
+                .eq('estado', 'activa')
 
-            const recaudado = 0 // Por ahora siempre 0
+            const recaudado = transacciones?.reduce((sum, t) => sum + t.monto, 0) || 0
 
             const porcentaje = actividad.meta > 0
                 ? Math.min((recaudado / actividad.meta) * 100, 100)

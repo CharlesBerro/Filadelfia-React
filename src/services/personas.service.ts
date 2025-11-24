@@ -55,11 +55,17 @@ export class PersonasService {
         .filter((p) => {
           if (!p.fecha_nacimiento) return false
 
-          const fecha = new Date(p.fecha_nacimiento)
+          // Parsear manualmente para evitar problemas de zona horaria (UTC vs Local)
+          const fechaStr = p.fecha_nacimiento.includes('T')
+            ? p.fecha_nacimiento.split('T')[0]
+            : p.fecha_nacimiento
+
+          const [anio, mes, dia] = fechaStr.split('-').map(Number)
+
           const cumpleanosEsteAno = new Date(
             hoy.getFullYear(),
-            fecha.getMonth(),
-            fecha.getDate()
+            mes - 1,
+            dia
           )
           cumpleanosEsteAno.setHours(0, 0, 0, 0)
 
@@ -71,18 +77,25 @@ export class PersonasService {
           return cumpleanosEsteAno <= dentro30
         })
         .sort((a, b) => {
-          const fechaA = new Date(a.fecha_nacimiento!)
-          const fechaB = new Date(b.fecha_nacimiento!)
+          const fechaStrA = a.fecha_nacimiento!.includes('T')
+            ? a.fecha_nacimiento!.split('T')[0]
+            : a.fecha_nacimiento!
+          const [anioA, mesA, diaA] = fechaStrA.split('-').map(Number)
+
+          const fechaStrB = b.fecha_nacimiento!.includes('T')
+            ? b.fecha_nacimiento!.split('T')[0]
+            : b.fecha_nacimiento!
+          const [anioB, mesB, diaB] = fechaStrB.split('-').map(Number)
 
           const cumA = new Date(
             new Date().getFullYear(),
-            fechaA.getMonth(),
-            fechaA.getDate()
+            mesA - 1,
+            diaA
           )
           const cumB = new Date(
             new Date().getFullYear(),
-            fechaB.getMonth(),
-            fechaB.getDate()
+            mesB - 1,
+            diaB
           )
 
           if (cumA < new Date()) cumA.setFullYear(cumA.getFullYear() + 1)

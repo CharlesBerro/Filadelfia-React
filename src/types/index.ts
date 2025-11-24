@@ -67,7 +67,7 @@ export interface PersonaCreate {
 }
 
 // Para actualizar persona
-export interface PersonaUpdate extends Partial<PersonaCreate> {}
+export interface PersonaUpdate extends Partial<PersonaCreate> { }
 
 // Transacción
 export interface Transaccion {
@@ -95,10 +95,32 @@ export interface Categoria {
 export interface Actividad {
   id: string
   user_id: string
-  titulo: string
+  nombre: string
   descripcion?: string | null
-  fecha: string
+  fecha_inicio: string
+  fecha_fin?: string | null
+  estado: 'planeada' | 'en_curso' | 'completada'
+  meta: number
   created_at: string
+  updated_at?: string
+}
+
+export interface ActividadCreate {
+  nombre: string
+  descripcion?: string
+  fecha_inicio: string
+  fecha_fin?: string
+  estado: 'planeada' | 'en_curso' | 'completada'
+  meta: number
+}
+
+export interface ActividadUpdate {
+  nombre?: string
+  descripcion?: string
+  fecha_inicio?: string
+  fecha_fin?: string
+  estado?: 'planeada' | 'en_curso' | 'completada'
+  meta?: number
 }
 
 // Ministerio

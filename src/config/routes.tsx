@@ -20,6 +20,7 @@ import { TransaccionesPage } from '@/pages/TransaccionesPage'
 import { NuevaTransaccionPage } from '@/pages/NuevaTransaccionPage'
 import { EditarTransaccionPage } from '@/pages/EditarTransaccionPage'
 import { TransaccionDetallePage } from '@/pages/TransaccionDetallePage'
+import { ReportesPage } from '@/pages/ReportesPage'
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -174,6 +175,16 @@ export const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute>
               <EditarTransaccionPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Protegidas - Reportes */}
+        <Route
+          path="/reportes"
+          element={
+            <ProtectedRoute>
+              <ReportesPage />
             </ProtectedRoute>
           }
         />

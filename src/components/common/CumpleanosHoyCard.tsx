@@ -20,16 +20,22 @@ export const CumpleanosHoyCard: React.FC = () => {
                 })
                 const cumpleanosHoyFiltrado = todas.filter(persona => {
                     if (!persona.fecha_nacimiento) return false
-                    const fechaNac = new Date(persona.fecha_nacimiento)
+
+                    // Parsear manualmente para evitar problemas de zona horaria
+                    const fechaStr = persona.fecha_nacimiento.includes('T')
+                        ? persona.fecha_nacimiento.split('T')[0]
+                        : persona.fecha_nacimiento
+                    const [anio, mes, dia] = fechaStr.split('-').map(Number)
+
                     console.log(`👤 ${persona.nombres}:`, {
                         fecha_original: persona.fecha_nacimiento,
-                        fecha_parseada: fechaNac.toISOString(),
-                        día: fechaNac.getDate(),
-                        mes: fechaNac.getMonth()
+                        dia_parseado: dia,
+                        mes_parseado: mes,
+                        hoy_dia: hoy.getDate(),
+                        hoy_mes: hoy.getMonth() + 1
                     })
-                    // Comparar usando UTC para evitar problemas de zona horaria
-                    return fechaNac.getDate() === hoy.getDate() &&
-                        fechaNac.getMonth() === hoy.getMonth()
+
+                    return dia === hoy.getDate() && (mes - 1) === hoy.getMonth()
                 })
 
                 console.log('🎉 Personas que cumplen HOY:', cumpleanosHoyFiltrado)
