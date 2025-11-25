@@ -6,8 +6,9 @@ import { TransaccionesService } from '@/services/transacciones.service'
 import { useTransaccionesStore } from '@/stores/transacciones.store'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Button } from '@/components/ui/Button'
-import { ArrowLeft, Edit2, XCircle, Receipt, Calendar, User, FileText, Link as LinkIcon } from 'lucide-react'
+import { ArrowLeft, Edit2, XCircle, Receipt, FileText, Link as LinkIcon } from 'lucide-react'
 import type { TransaccionCompleta } from '@/types/transacciones'
+import jsPDF from 'jspdf'
 
 /**
  * Página de detalle de transacción
@@ -92,6 +93,95 @@ export const TransaccionDetallePage: React.FC = () => {
         })
     }
 
+    const handleExportReceipt = () => {
+        if (!transaccion) return
+
+        const doc = new jsPDF()
+
+        // Header
+        doc.setFontSize(22)
+        doc.setTextColor(40, 40, 40)
+        doc.text('Recibo de Transacción', 105, 20, { align: 'center' })
+
+        doc.setFontSize(12)
+        doc.setTextColor(100, 100, 100)
+        doc.text(`No. ${transaccion.numero_transaccion}`, 105, 30, { align: 'center' })
+
+        // Line separator
+        doc.setDrawColor(200, 200, 200)
+        doc.line(20, 40, 190, 40)
+
+        // Content
+        doc.setFontSize(14)
+        doc.setTextColor(0, 0, 0)
+
+        let y = 60
+        const lineHeight = 15
+
+        // Fecha
+        doc.setFont('helvetica', 'bold')
+        doc.text('Fecha:', 20, y)
+        doc.setFont('helvetica', 'normal')
+        doc.text(formatDateTime(transaccion.fecha), 80, y)
+        y += lineHeight
+
+        // Tipo
+        doc.setFont('helvetica', 'bold')
+        doc.text('Tipo:', 20, y)
+        doc.setFont('helvetica', 'normal')
+        doc.text(transaccion.tipo === 'ingreso' ? 'Ingreso' : 'Egreso', 80, y)
+        y += lineHeight
+
+        // Categoría
+        doc.setFont('helvetica', 'bold')
+        doc.text('Categoría:', 20, y)
+        doc.setFont('helvetica', 'normal')
+        doc.text(transaccion.categoria?.nombre || '-', 80, y)
+        y += lineHeight
+
+        // Monto
+        doc.setFont('helvetica', 'bold')
+        doc.text('Monto:', 20, y)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(transaccion.tipo === 'ingreso' ? 0 : 200, transaccion.tipo === 'ingreso' ? 128 : 0, 0)
+        doc.text(formatCurrency(transaccion.monto), 80, y)
+        doc.setTextColor(0, 0, 0)
+        y += lineHeight
+
+        // Persona (si existe)
+        if (transaccion.persona) {
+            doc.setFont('helvetica', 'bold')
+            doc.text('Persona:', 20, y)
+            doc.setFont('helvetica', 'normal')
+            doc.text(`${transaccion.persona.nombres} ${transaccion.persona.primer_apellido}`, 80, y)
+            y += lineHeight
+        }
+
+        // Descripción
+        if (transaccion.descripcion) {
+            y += 10
+            doc.setFont('helvetica', 'bold')
+            doc.text('Descripción:', 20, y)
+            y += 10
+            doc.setFont('helvetica', 'normal')
+            doc.setFontSize(12)
+            const splitDesc = doc.splitTextToSize(transaccion.descripcion, 170)
+            doc.text(splitDesc, 20, y)
+            y += (splitDesc.length * 7) + 10
+        }
+
+        // Footer
+        doc.setDrawColor(200, 200, 200)
+        doc.line(20, 270, 190, 270)
+
+        doc.setFontSize(10)
+        doc.setTextColor(150, 150, 150)
+        doc.text('Generado por Filadelfia App', 105, 280, { align: 'center' })
+        doc.text(new Date().toLocaleString(), 105, 285, { align: 'center' })
+
+        doc.save(`recibo_${transaccion.numero_transaccion}.pdf`)
+    }
+
     if (isLoading) {
         return (
             <Layout>
@@ -145,14 +235,14 @@ export const TransaccionDetallePage: React.FC = () => {
                                     </h1>
                                     <div className="flex items-center gap-3 mt-2">
                                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${transaccion.tipo === 'ingreso'
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-red-100 text-red-800'
+                                            ? 'bg-green-100 text-green-800'
+                                            : 'bg-red-100 text-red-800'
                                             }`}>
                                             {transaccion.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'}
                                         </span>
                                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${transaccion.estado === 'activa'
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : 'bg-gray-100 text-gray-800'
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : 'bg-gray-100 text-gray-800'
                                             }`}>
                                             {transaccion.estado === 'activa' ? 'Activa' : 'Anulada'}
                                         </span>
@@ -161,6 +251,13 @@ export const TransaccionDetallePage: React.FC = () => {
                             </div>
 
                             <div className="flex gap-3">
+                                <Button
+                                    onClick={handleExportReceipt}
+                                    variant="secondary"
+                                >
+                                    <FileText className="w-5 h-5" />
+                                    Recibo
+                                </Button>
                                 {puedeEditar && (
                                     <>
                                         <Button
