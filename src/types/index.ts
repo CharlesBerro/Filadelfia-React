@@ -14,6 +14,7 @@ export interface User {
 export interface Persona {
   id: string
   user_id: string
+  sede_id?: string
   tipo_id: string
   numero_id: string
   nombres: string
@@ -87,8 +88,21 @@ export interface Categoria {
   id: string
   user_id: string
   nombre: string
+  descripcion?: string | null
   tipo: 'ingreso' | 'egreso'
   created_at: string
+}
+
+export interface CategoriaCreate {
+  nombre: string
+  descripcion?: string | null
+  tipo: 'ingreso' | 'egreso'
+}
+
+export interface CategoriaUpdate {
+  nombre?: string
+  descripcion?: string | null
+  tipo?: 'ingreso' | 'egreso'
 }
 
 // Actividad
