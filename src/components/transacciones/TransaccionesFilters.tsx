@@ -63,41 +63,42 @@ export const TransaccionesFiltersComponent: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-                {/* Filtros Rápidos */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Filtros Rápidos
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                        <button
-                            onClick={() => aplicarFiltroRapido('hoy')}
-                            className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
-                        >
-                            Hoy
-                        </button>
-                        <button
-                            onClick={() => aplicarFiltroRapido('semana')}
-                            className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
-                        >
-                            Esta Semana
-                        </button>
-                        <button
-                            onClick={() => aplicarFiltroRapido('mes')}
-                            className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
-                        >
-                            Este Mes
-                        </button>
-                        <button
-                            onClick={() => aplicarFiltroRapido('todo')}
-                            className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
-                        >
-                            Todo
-                        </button>
+                {/* Filtros Rápidos y Fechas en una sola fila */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-end">
+                    {/* Filtros Rápidos */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Filtros Rápidos
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                onClick={() => aplicarFiltroRapido('hoy')}
+                                className="px-3 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                            >
+                                Hoy
+                            </button>
+                            <button
+                                onClick={() => aplicarFiltroRapido('semana')}
+                                className="px-3 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                            >
+                                Semana
+                            </button>
+                            <button
+                                onClick={() => aplicarFiltroRapido('mes')}
+                                className="px-3 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                            >
+                                Mes
+                            </button>
+                            <button
+                                onClick={() => aplicarFiltroRapido('todo')}
+                                className="px-3 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                            >
+                                Todo
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                {/* Rango de Fechas */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Fecha Inicio */}
                     <div>
                         <label htmlFor="fechaInicio" className="block text-sm font-medium text-gray-700 mb-2">
                             Fecha Inicio
@@ -110,6 +111,8 @@ export const TransaccionesFiltersComponent: React.FC = () => {
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                     </div>
+
+                    {/* Fecha Fin */}
                     <div>
                         <label htmlFor="fechaFin" className="block text-sm font-medium text-gray-700 mb-2">
                             Fecha Fin

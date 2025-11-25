@@ -1,7 +1,7 @@
 import React from 'react'
 import {
-    BarChart,
-    Bar,
+    LineChart,
+    Line,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -63,7 +63,7 @@ export const ContabilidadCharts: React.FC<ContabilidadChartsProps> = ({
                 <CardContent className="p-6">
                     <div className="h-[400px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
+                            <LineChart
                                 data={cashFlowData}
                                 margin={{
                                     top: 20,
@@ -80,9 +80,25 @@ export const ContabilidadCharts: React.FC<ContabilidadChartsProps> = ({
                                     labelStyle={{ color: '#333' }}
                                 />
                                 <Legend />
-                                <Bar dataKey="ingresos" name="Ingresos" fill="#10B981" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="egresos" name="Egresos" fill="#EF4444" radius={[4, 4, 0, 0]} />
-                            </BarChart>
+                                <Line
+                                    type="monotone"
+                                    dataKey="ingresos"
+                                    name="Ingresos"
+                                    stroke="#10B981"
+                                    strokeWidth={3}
+                                    dot={{ fill: '#10B981', r: 5 }}
+                                    activeDot={{ r: 7 }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="egresos"
+                                    name="Egresos"
+                                    stroke="#EF4444"
+                                    strokeWidth={3}
+                                    dot={{ fill: '#EF4444', r: 5 }}
+                                    activeDot={{ r: 7 }}
+                                />
+                            </LineChart>
                         </ResponsiveContainer>
                     </div>
                 </CardContent>
