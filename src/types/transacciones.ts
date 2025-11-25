@@ -76,7 +76,7 @@ export interface TransaccionesFilters {
     categoria_id?: string
     persona_id?: string
     tipo?: 'ingreso' | 'egreso'
-    estado?: 'activa' | 'anulada'
+    estado?: 'activa' | 'anulada' | 'todas'
 }
 
 // Estadísticas de transacciones

@@ -14,6 +14,7 @@ interface PersonasStore {
   removePersona: (id: string) => void
   updatePersona: (id: string, updated: Partial<Persona>) => void
   reset: () => void
+  fetchPersonas: () => Promise<void>
 }
 
 export const usePersonasStore = create<PersonasStore>((set) => ({
@@ -57,4 +58,16 @@ export const usePersonasStore = create<PersonasStore>((set) => ({
       error: null,
       lastUpdated: null,
     }),
+
+  fetchPersonas: async () => {
+    set({ loading: true, error: null })
+    try {
+      const { PersonasService } = await import('@/services/personas.service')
+      const data = await PersonasService.obtenerMias()
+      set({ personas: data, loading: false, lastUpdated: Date.now() })
+    } catch (error: any) {
+      console.error('Error fetching personas:', error)
+      set({ error: error.message || 'Error al cargar personas', loading: false })
+    }
+  },
 }))

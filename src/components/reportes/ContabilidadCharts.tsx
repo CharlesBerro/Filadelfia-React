@@ -18,11 +18,13 @@ interface CashFlowData {
     month: string
     ingresos: number
     egresos: number
+    [key: string]: string | number // Index signature para Recharts
 }
 
 interface CategoryData {
     name: string
     value: number
+    [key: string]: string | number // Index signature para Recharts
 }
 
 interface ContabilidadChartsProps {

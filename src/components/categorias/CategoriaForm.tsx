@@ -1,25 +1,13 @@
 // src/components/categorias/CategoriaForm.tsx
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CategoriasService } from '@/services/categorias.services'
 import { useCategoriasStore } from '@/stores/categorias.store'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { ArrowLeft, Save, TrendingUp, TrendingDown } from 'lucide-react'
+import { SavingOverlay } from '@/components/ui/SavingOverlay'
+import { Save, TrendingUp, TrendingDown } from 'lucide-react'
 import type { Categoria, CategoriaCreate } from '@/types'
-
-/**
- * Formulario de Categoría
- * 
- * Puede usarse para:
- * - Crear nueva categoría (modo: 'create')
- * - Editar categoría existente (modo: 'edit')
- * 
- * Props:
- * - categoria?: Categoria → Si existe, es modo editar
- * - onSuccess?: () => void → Callback al guardar exitosamente
- */
 
 interface CategoriaFormProps {
   categoria?: Categoria
@@ -34,6 +22,7 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
   const { addCategoria, updateCategoria } = useCategoriasStore()
 
   const [loading, setLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Estado del formulario
@@ -54,229 +43,179 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
     }
   }, [categoria])
 
-  // Manejar cambios en los inputs
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-
-    // Limpiar error del campo
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
-    }
-  }
-
-  // Validar formulario
-  const validar = (): boolean => {
+  const validateForm = () => {
     const newErrors: Record<string, string> = {}
-
     if (!formData.nombre.trim()) {
-      newErrors.nombre = 'El nombre es obligatorio'
-    } else if (formData.nombre.trim().length < 3) {
+      newErrors.nombre = 'El nombre es requerido'
+    }
+    if (formData.nombre.length < 3) {
       newErrors.nombre = 'El nombre debe tener al menos 3 caracteres'
     }
-
-    if (!formData.tipo) {
-      newErrors.tipo = 'Selecciona un tipo'
-    }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  // Enviar formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!validar()) return
+    if (!validateForm()) return
 
     setLoading(true)
-
     try {
       if (categoria) {
-        // Modo EDITAR
-        const actualizada = await CategoriasService.actualizar(
-          categoria.id,
-          formData
-        )
-        updateCategoria(categoria.id, actualizada)
-        console.log('✅ Categoría actualizada')
+        await updateCategoria(categoria.id, formData)
       } else {
-        // Modo CREAR
-        const nueva = await CategoriasService.crear(formData)
-        addCategoria(nueva)
-        console.log('✅ Categoría creada')
+        await addCategoria(formData)
       }
 
-      // Callback de éxito
-      if (onSuccess) {
-        onSuccess()
-      } else {
-        navigate('/categorias')
-      }
+      // Mostrar éxito
+      setIsSuccess(true)
+
+      // Esperar un momento para que el usuario vea el mensaje de éxito
+      setTimeout(() => {
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          navigate('/categorias')
+        }
+      }, 1500)
+
     } catch (error: any) {
-      console.error('❌ Error:', error)
-      setErrors({
-        general: error.message || 'Error al guardar la categoría',
-      })
-    } finally {
+      console.error('Error guardando categoría:', error)
+      alert(error.message || 'Error al guardar la categoría')
       setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {loading && (
-        <LoadingSpinner
-          fullScreen
-          text={categoria ? 'Actualizando categoría...' : 'Creando categoría...'}
-        />
-      )}
+    <>
+      <SavingOverlay
+        isLoading={loading}
+        isSuccess={isSuccess}
+        loadingText={categoria ? "Actualizando categoría..." : "Creando categoría..."}
+        successText={categoria ? "Categoría actualizada correctamente" : "Categoría creada correctamente"}
+      />
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => navigate('/categorias')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm">Volver</span>
-        </button>
-
-        <Button type="submit" variant="primary" disabled={loading}>
-          <Save className="w-5 h-5" />
-          {categoria ? 'Actualizar' : 'Crear'} Categoría
-        </Button>
-      </div>
-
-      {/* Error general */}
-      {errors.general && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-700 text-sm">{errors.general}</p>
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-md border border-green-100">
+        {/* Header del Formulario */}
+        <div className="flex items-center gap-3 mb-6 border-b border-green-100 pb-4">
+          <div className={`p-3 rounded-full ${categoria ? 'bg-blue-100' : 'bg-green-100'}`}>
+            {categoria ? (
+              <Save className="w-6 h-6 text-blue-600" />
+            ) : (
+              <div className="w-6 h-6 flex items-center justify-center font-bold text-green-600 text-xl">+</div>
+            )}
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">
+              {categoria ? 'Editar Categoría' : 'Nueva Categoría'}
+            </h2>
+            <p className="text-sm text-gray-500">
+              {categoria ? 'Modifica los datos de la categoría' : 'Crea una nueva categoría para tus transacciones'}
+            </p>
+          </div>
         </div>
-      )}
 
-      {/* Formulario */}
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-green-100 space-y-4">
-        {/* Nombre */}
-        <Input
-          label="Nombre de la Categoría *"
-          name="nombre"
-          value={formData.nombre}
-          onChange={handleChange}
-          placeholder="Ej: Diezmos, Ofrendas, Servicios públicos..."
-          error={errors.nombre}
-          disabled={loading}
-        />
-
-        {/* Tipo */}
+        {/* Tipo de Categoría */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Tipo *
+            Tipo de Transacción
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <button
               type="button"
-              onClick={() =>
-                setFormData((prev) => ({ ...prev, tipo: 'ingreso' }))
-              }
-              className={`p-4 rounded-lg border-2 transition ${
-                formData.tipo === 'ingreso'
-                  ? 'border-green-500 bg-green-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              disabled={loading || !!categoria} // No cambiar tipo al editar
+              onClick={() => !categoria && setFormData({ ...formData, tipo: 'ingreso' })}
+              disabled={!!categoria} // No permitir cambiar tipo al editar
+              className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${formData.tipo === 'ingreso'
+                  ? 'border-green-500 bg-green-50 text-green-700'
+                  : 'border-gray-200 hover:border-green-200 text-gray-600'
+                } ${categoria ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <TrendingUp
-                className={`w-6 h-6 mx-auto mb-2 ${
-                  formData.tipo === 'ingreso' ? 'text-green-600' : 'text-gray-400'
-                }`}
-              />
-              <span
-                className={`block text-sm font-medium ${
-                  formData.tipo === 'ingreso' ? 'text-green-700' : 'text-gray-600'
-                }`}
-              >
-                Ingreso
-              </span>
-              <span className="block text-xs text-gray-500 mt-1">
-                Dinero que entra
-              </span>
+              <TrendingUp className={`w-5 h-5 ${formData.tipo === 'ingreso' ? 'text-green-600' : 'text-gray-400'}`} />
+              <span className="font-semibold">Ingreso</span>
             </button>
 
             <button
               type="button"
-              onClick={() => setFormData((prev) => ({ ...prev, tipo: 'egreso' }))}
-              className={`p-4 rounded-lg border-2 transition ${
-                formData.tipo === 'egreso'
-                  ? 'border-red-500 bg-red-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              disabled={loading || !!categoria} // No cambiar tipo al editar
+              onClick={() => !categoria && setFormData({ ...formData, tipo: 'egreso' })}
+              disabled={!!categoria}
+              className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${formData.tipo === 'egreso'
+                  ? 'border-red-500 bg-red-50 text-red-700'
+                  : 'border-gray-200 hover:border-red-200 text-gray-600'
+                } ${categoria ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <TrendingDown
-                className={`w-6 h-6 mx-auto mb-2 ${
-                  formData.tipo === 'egreso' ? 'text-red-600' : 'text-gray-400'
-                }`}
-              />
-              <span
-                className={`block text-sm font-medium ${
-                  formData.tipo === 'egreso' ? 'text-red-700' : 'text-gray-600'
-                }`}
-              >
-                Egreso
-              </span>
-              <span className="block text-xs text-gray-500 mt-1">
-                Dinero que sale
-              </span>
+              <TrendingDown className={`w-5 h-5 ${formData.tipo === 'egreso' ? 'text-red-600' : 'text-gray-400'}`} />
+              <span className="font-semibold">Egreso</span>
             </button>
           </div>
-          {errors.tipo && <p className="text-red-500 text-sm mt-2">{errors.tipo}</p>}
           {categoria && (
-            <p className="text-sm text-gray-500 mt-2">
-              ℹ️ No se puede cambiar el tipo de una categoría existente
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              El tipo de categoría no se puede cambiar una vez creada
             </p>
           )}
         </div>
 
+        {/* Nombre */}
+        <div>
+          <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">
+            Nombre de la Categoría <span className="text-red-500">*</span>
+          </label>
+          <Input
+            id="nombre"
+            value={formData.nombre}
+            onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+            placeholder="Ej: Diezmos, Ofrendas, Servicios Públicos..."
+            error={errors.nombre}
+            disabled={loading}
+            className="text-lg"
+          />
+        </div>
+
         {/* Descripción */}
         <div>
-          <label
-            htmlFor="descripcion"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Descripción (opcional)
+          <label htmlFor="descripcion" className="block text-sm font-medium text-gray-700 mb-1">
+            Descripción (Opcional)
           </label>
           <textarea
             id="descripcion"
-            name="descripcion"
-            value={formData.descripcion || ''}
-            onChange={handleChange}
+            value={formData.descripcion}
+            onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
             rows={3}
-            className="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-            placeholder="Describe para qué se usa esta categoría..."
+            placeholder="Breve descripción para identificar mejor esta categoría..."
             disabled={loading}
           />
         </div>
-      </div>
 
-      {/* Botones finales */}
-      <div className="flex gap-3">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => navigate('/categorias')}
-          fullWidth
-          disabled={loading}
-        >
-          Cancelar
-        </Button>
-        <Button type="submit" variant="primary" fullWidth disabled={loading}>
-          {categoria ? 'Actualizar' : 'Crear'} Categoría
-        </Button>
-      </div>
-    </form>
+        {/* Botones de Acción */}
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => navigate('/categorias')}
+            disabled={loading}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={loading}
+            className="min-w-[140px]"
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <LoadingSpinner size="sm" color="white" />
+                <span>Guardando...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Save className="w-4 h-4" />
+                <span>{categoria ? 'Guardar Cambios' : 'Crear Categoría'}</span>
+              </div>
+            )}
+          </Button>
+        </div>
+      </form>
+    </>
   )
 }

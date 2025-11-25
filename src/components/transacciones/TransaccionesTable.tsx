@@ -19,7 +19,11 @@ import type { TransaccionCompleta } from '@/types/transacciones'
  * - Acciones: Ver, Editar, Anular
  * - Paginación
  */
-export const TransaccionesTable: React.FC = () => {
+interface TransaccionesTableProps {
+    onViewReceipt?: (transaccion: TransaccionCompleta) => void
+}
+
+export const TransaccionesTable: React.FC<TransaccionesTableProps> = ({ onViewReceipt }) => {
     const navigate = useNavigate()
     const { transacciones, updateTransaccion } = useTransaccionesStore()
     const { user } = useAuthStore()
@@ -173,7 +177,7 @@ export const TransaccionesTable: React.FC = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                             {transaccionesPaginadas.map((transaccion) => {
-                                const puedeEditar = user?.rol === 'admin' || transaccion.user_id === user?.id
+                                const puedeEditar = user?.role === 'admin' || transaccion.user_id === user?.id
                                 const puedeAnular = puedeEditar && transaccion.estado === 'activa'
 
                                 return (
@@ -248,6 +252,19 @@ export const TransaccionesTable: React.FC = () => {
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </button>
+
+                                                {onViewReceipt && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            onViewReceipt(transaccion)
+                                                        }}
+                                                        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                                                        title="Ver Comprobante"
+                                                    >
+                                                        <Receipt className="w-4 h-4" />
+                                                    </button>
+                                                )}
 
                                                 {puedeEditar && transaccion.estado === 'activa' && (
                                                     <button

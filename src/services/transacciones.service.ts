@@ -69,7 +69,12 @@ export class TransaccionesService {
             query = query.eq('tipo', filters.tipo)
         }
         if (filters?.estado) {
-            query = query.eq('estado', filters.estado)
+            if (filters.estado === 'todas') {
+                // No aplicar filtro de estado, mostrar todo
+                console.log('[TransaccionesService] 📌 Mostrando TODAS las transacciones (Activas + Anuladas)')
+            } else {
+                query = query.eq('estado', filters.estado)
+            }
         } else {
             // Por defecto, solo mostrar transacciones activas
             console.log('[TransaccionesService] 📌 Aplicando filtro por defecto: estado=activa')

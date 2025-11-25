@@ -154,7 +154,8 @@ export const TransaccionesFiltersComponent: React.FC = () => {
                             onChange={(e) => handleFilterChange('estado', e.target.value)}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
-                            <option value="">Activas</option>
+                            <option value="">Activas (Por defecto)</option>
+                            <option value="todas">Todas (Activas + Anuladas)</option>
                             <option value="activa">Solo Activas</option>
                             <option value="anulada">Solo Anuladas</option>
                         </select>
