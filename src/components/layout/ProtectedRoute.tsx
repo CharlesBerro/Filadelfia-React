@@ -33,7 +33,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Si requiere rol específico y no lo tiene, redirigir
-  if (requiredRole && user.rol !== requiredRole && user.rol !== 'admin') {
+  if (requiredRole && user.role !== requiredRole && user.role !== 'admin') {
     return <Navigate to="/dashboard" replace />
   }
 

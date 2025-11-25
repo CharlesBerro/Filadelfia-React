@@ -27,6 +27,9 @@ export class TransaccionesService {
         const { user } = useAuthStore.getState()
         if (!user) throw new Error('Usuario no autenticado')
 
+        console.log('[TransaccionesService] 👤 Usuario:', user.email, '| Rol:', user.role, '| ID:', user.id)
+        console.log('[TransaccionesService] 🔍 Filtros recibidos:', filters)
+
         let query = supabase
             .from('transacciones')
             .select(`
@@ -39,8 +42,11 @@ export class TransaccionesService {
             .order('created_at', { ascending: false })
 
         // Filtro por permisos: usuarios ven solo sus transacciones
-        if (user.rol !== 'admin') {
+        if (user.role !== 'admin') {
+            console.log('[TransaccionesService] ⚠️  Usuario NO es admin, filtrando por user_id')
             query = query.eq('user_id', user.id)
+        } else {
+            console.log('[TransaccionesService] ✅ Usuario ES ADMIN, mostrando TODAS las transacciones')
         }
 
         // Aplicar filtros
@@ -66,15 +72,20 @@ export class TransaccionesService {
             query = query.eq('estado', filters.estado)
         } else {
             // Por defecto, solo mostrar transacciones activas
+            console.log('[TransaccionesService] 📌 Aplicando filtro por defecto: estado=activa')
             query = query.eq('estado', 'activa')
         }
 
+        console.log('[TransaccionesService] 🚀 Ejecutando query a Supabase...')
         const { data, error } = await query
 
         if (error) {
-            console.error('Error obteniendo transacciones:', error)
+            console.error('[TransaccionesService] ❌ Error obteniendo transacciones:', error)
             throw new Error('Error al cargar transacciones')
         }
+
+        console.log('[TransaccionesService] ✅ Transacciones obtenidas de Supabase:', data?.length || 0)
+        console.log('[TransaccionesService] 📋 Primeras 3:', data?.slice(0, 3))
 
         return data as TransaccionCompleta[]
     }
@@ -103,7 +114,7 @@ export class TransaccionesService {
         }
 
         // Verificar permisos
-        if (user.rol !== 'admin' && data.user_id !== user.id) {
+        if (user.role !== 'admin' && data.user_id !== user.id) {
             throw new Error('No tienes permisos para ver esta transacción')
         }
 
@@ -174,7 +185,7 @@ export class TransaccionesService {
         }
 
         // Verificar permisos
-        if (user.rol !== 'admin' && transaccionActual.user_id !== user.id) {
+        if (user.role !== 'admin' && transaccionActual.user_id !== user.id) {
             throw new Error('No tienes permisos para editar esta transacción')
         }
 
@@ -230,7 +241,7 @@ export class TransaccionesService {
         }
 
         // Verificar permisos
-        if (user.rol !== 'admin' && transaccionActual.user_id !== user.id) {
+        if (user.role !== 'admin' && transaccionActual.user_id !== user.id) {
             throw new Error('No tienes permisos para anular esta transacción')
         }
 
@@ -306,7 +317,7 @@ export class TransaccionesService {
             .eq('estado', 'activa') // Solo transacciones activas
 
         // Filtro por permisos
-        if (user.rol !== 'admin') {
+        if (user.role !== 'admin') {
             query = query.eq('user_id', user.id)
         }
 

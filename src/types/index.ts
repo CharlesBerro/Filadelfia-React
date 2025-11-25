@@ -3,7 +3,7 @@ export interface User {
   id: string
   email: string
   full_name: string
-  rol: 'admin' | 'usuario' | 'contador'
+  role: 'admin' | 'usuario' | 'contador'
   sede_id: string
   sede_nombre?: string
   sede_lider?: string
