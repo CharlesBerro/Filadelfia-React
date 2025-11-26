@@ -20,7 +20,8 @@ interface PersonasChartsProps {
     growthData: any[]
     genderData: any[]
     ageData: any[]
-    bautizadosData?: any[]
+    bautizadosData: any[]
+    baptismByAgeData?: any[]
     isLoading: boolean
 }
 
@@ -32,6 +33,7 @@ export const PersonasCharts: React.FC<PersonasChartsProps> = ({
     genderData,
     ageData,
     bautizadosData,
+    baptismByAgeData,
     isLoading,
 }) => {
     if (isLoading) {
@@ -156,7 +158,7 @@ export const PersonasCharts: React.FC<PersonasChartsProps> = ({
             </div>
 
             {/* Bautizados vs No Bautizados */}
-            {bautizadosData && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>Estado de Bautismo</CardTitle>
@@ -194,7 +196,40 @@ export const PersonasCharts: React.FC<PersonasChartsProps> = ({
                         )}
                     </CardContent>
                 </Card>
-            )}
+
+                {/* Bautizados por Rango de Edad (Nuevo) */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Bautismo por Edad</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                        {baptismByAgeData && baptismByAgeData.length > 0 ? (
+                            <div className="h-[300px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart
+                                        data={baptismByAgeData}
+                                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="name" />
+                                        <YAxis />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Bar dataKey="bautizados" stackId="a" fill="#10B981" name="Bautizados" />
+                                        <Bar dataKey="noBautizados" stackId="a" fill="#EF4444" name="No Bautizados" />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        ) : (
+                            <div className="h-[300px] flex items-center justify-center">
+                                <p className="text-gray-500 text-center">
+                                    No hay datos disponibles
+                                </p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     )
 }

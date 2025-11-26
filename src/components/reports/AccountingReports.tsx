@@ -1,22 +1,42 @@
-import React, { useState, useMemo } from 'react'
-import { ArrowLeft, Calendar, Plus, Minus, DollarSign, CheckCircle } from 'lucide-react'
+import React, { useState, useMemo, useEffect } from 'react'
+import { ArrowLeft, Calendar, Plus, Minus, DollarSign, CheckCircle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { CashFlowChart } from '@/components/charts/CashFlowChart'
 import { IncomeExpenseChart } from '@/components/charts/IncomeExpenseChart'
-import { useTransaccionesStore } from '@/stores/transacciones.store'
+import { TransaccionesService } from '@/services/transacciones.service'
 import { format, subDays, startOfMonth, isWithinInterval, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
+import type { TransaccionCompleta } from '@/types/transacciones'
 
 interface AccountingReportsProps {
     onBack: () => void
 }
 
 export const AccountingReports: React.FC<AccountingReportsProps> = ({ onBack }) => {
-    const { transacciones } = useTransaccionesStore()
+    const [isLoading, setIsLoading] = useState(true)
+    const [transacciones, setTransacciones] = useState<TransaccionCompleta[]>([])
     const [dateRange, setDateRange] = useState({
         start: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
         end: format(new Date(), 'yyyy-MM-dd')
     })
+
+    const cargarDatos = async () => {
+        try {
+            setIsLoading(true)
+            // Obtenemos todas las transacciones activas para generar reportes precisos
+            // Independiente de los filtros de la página de transacciones
+            const data = await TransaccionesService.obtenerTodas()
+            setTransacciones(data)
+        } catch (error) {
+            console.error('Error cargando datos para reportes:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        cargarDatos()
+    }, [])
 
     // Filter transactions based on date range
     const filteredTransactions = useMemo(() => {
@@ -97,6 +117,10 @@ export const AccountingReports: React.FC<AccountingReportsProps> = ({ onBack }) 
         })
     }
 
+    if (isLoading) {
+        return <div className="p-8 text-center text-gray-500">Cargando datos financieros...</div>
+    }
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -115,9 +139,14 @@ export const AccountingReports: React.FC<AccountingReportsProps> = ({ onBack }) 
                         <p className="text-gray-500 text-sm">Análisis financiero de ingresos, egresos y actividades</p>
                     </div>
                 </div>
-                <Button variant="secondary" onClick={onBack}>
-                    Volver a Reportes
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={cargarDatos} title="Recargar datos">
+                        <RefreshCw className="w-4 h-4" />
+                    </Button>
+                    <Button variant="secondary" onClick={onBack}>
+                        Volver a Reportes
+                    </Button>
+                </div>
             </div>
 
             {/* Filters */}
@@ -212,3 +241,4 @@ export const AccountingReports: React.FC<AccountingReportsProps> = ({ onBack }) 
         </div>
     )
 }
+

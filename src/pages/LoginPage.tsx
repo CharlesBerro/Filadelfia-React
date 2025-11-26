@@ -9,7 +9,7 @@ import { AuthService } from '@/services/auth.service'
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate()
-  
+
   // Estados
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -61,7 +61,7 @@ export const LoginPage: React.FC = () => {
 
     } catch (error: any) {
       console.error('Error:', error)
-      
+
       // Mostrar error específico
       if (error.message.includes('Invalid login credentials')) {
         setGeneralError('Email o contraseña incorrectos')
@@ -131,7 +131,7 @@ export const LoginPage: React.FC = () => {
 
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-600">
-          <p>¿No tienes cuenta? <button onClick={() => navigate('/signup')} className="text-blue-600 hover:underline">Regístrate aquí</button></p>
+          <p>¿No tienes cuenta? <span className="font-medium text-blue-600">Comunícate con el administrador</span></p>
         </div>
       </Card>
     </div>

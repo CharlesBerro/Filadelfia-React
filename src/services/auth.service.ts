@@ -12,15 +12,15 @@ export class AuthService {
         email,
         password,
       })
-  
+
       if (error) {
         throw new Error(error.message)
       }
-  
+
       if (!data.session) {
         throw new Error('No se obtuvo sesión')
       }
-  
+
       // 2. Obtener datos del usuario desde tabla profiles
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
@@ -33,27 +33,27 @@ export class AuthService {
         `)
         .eq('id', data.user.id)
         .single()
-  
+
       if (profileError) {
         throw new Error('Error obteniendo perfil: ' + profileError.message)
       }
-  
+
       if (!profileData) {
         throw new Error('Perfil no encontrado')
       }
-  
+
       // 3. Obtener información de la sede
       const sedeInfo = Array.isArray(profileData.sedes)
         ? profileData.sedes[0]
         : profileData.sedes
-  
+
       // 4. Retornar datos completos
       return {
         user: {
           id: profileData.id,
           email: data.user.email || '',
           full_name: profileData.full_name || 'Usuario',
-          rol: profileData.role as 'admin' | 'usuario' | 'contador',
+          role: profileData.role as 'admin' | 'usuario' | 'contador',
           sede_id: profileData.sede_id,
           sede_nombre: sedeInfo?.nombre_sede || 'Sin sede',
           sede_lider: sedeInfo?.lider || 'Sin asignar',

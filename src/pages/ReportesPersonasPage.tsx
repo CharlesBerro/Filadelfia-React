@@ -17,6 +17,7 @@ export const ReportesPersonasPage: React.FC = () => {
     const [genderData, setGenderData] = useState<any[]>([])
     const [ageData, setAgeData] = useState<any[]>([])
     const [bautizadosData, setBautizadosData] = useState<any[]>([])
+    const [baptismByAgeData, setBaptismByAgeData] = useState<any[]>([])
 
     // Estados para filtros
     const [fechaInicio, setFechaInicio] = useState<string>('')
@@ -152,6 +153,38 @@ export const ReportesPersonasPage: React.FC = () => {
             { name: 'No Bautizados', value: noBautizadosCount }
         ])
 
+        // 5. Bautizados por Rango de Edad (Nuevo Gráfico Solicitado)
+        const baptismByAgeRanges: Record<string, { bautizados: number; noBautizados: number }> = {
+            '0-12': { bautizados: 0, noBautizados: 0 },
+            '13-17': { bautizados: 0, noBautizados: 0 },
+            '18-30': { bautizados: 0, noBautizados: 0 },
+            '31-50': { bautizados: 0, noBautizados: 0 },
+            '51-70': { bautizados: 0, noBautizados: 0 },
+            '70+': { bautizados: 0, noBautizados: 0 }
+        }
+
+        personasFiltradas.forEach((p: any) => {
+            if (p.fecha_nacimiento) {
+                const age = differenceInYears(new Date(), parseISO(p.fecha_nacimiento))
+                let range = '70+'
+                if (age <= 12) range = '0-12'
+                else if (age <= 17) range = '13-17'
+                else if (age <= 30) range = '18-30'
+                else if (age <= 50) range = '31-50'
+                else if (age <= 70) range = '51-70'
+
+                if (p.bautizado) baptismByAgeRanges[range].bautizados++
+                else baptismByAgeRanges[range].noBautizados++
+            }
+        })
+
+        const baptismByAgeData = Object.entries(baptismByAgeRanges).map(([range, counts]) => ({
+            name: range,
+            bautizados: counts.bautizados,
+            noBautizados: counts.noBautizados
+        }))
+        setBaptismByAgeData(baptismByAgeData)
+
     }, [personas, fechaInicio, fechaFin])
 
     return (
@@ -213,6 +246,7 @@ export const ReportesPersonasPage: React.FC = () => {
                             genderData={genderData}
                             ageData={ageData}
                             bautizadosData={bautizadosData}
+                            baptismByAgeData={baptismByAgeData}
                             isLoading={isLoading}
                         />
                     </div>

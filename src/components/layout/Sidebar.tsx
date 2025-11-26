@@ -76,6 +76,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   ]
 
   const adminItems = [
+    { icon: Users, label: 'Usuarios', path: '/usuarios' },
     { icon: Settings, label: 'Administración', path: '/admin' },
   ]
 
@@ -142,8 +143,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   key={item.path}
                   onClick={() => handleNavigation(item.path)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
-                      ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg'
-                      : 'text-gray-700 hover:bg-green-50'
+                    ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg'
+                    : 'text-gray-700 hover:bg-green-50'
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -164,8 +165,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <button
                     onClick={() => toggleModule(module.label)}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 ${hasActiveItem && !isExpanded
-                        ? 'bg-green-100 text-green-700'
-                        : 'text-gray-700 hover:bg-green-50'
+                      ? 'bg-green-100 text-green-700'
+                      : 'text-gray-700 hover:bg-green-50'
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -194,8 +195,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                             key={item.path}
                             onClick={() => handleNavigation(item.path)}
                             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm ${active
-                                ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-md'
-                                : 'text-gray-600 hover:bg-green-50 hover:text-gray-900'
+                              ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-md'
+                              : 'text-gray-600 hover:bg-green-50 hover:text-gray-900'
                               }`}
                           >
                             <ItemIcon className="w-4 h-4" />
@@ -210,7 +211,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             })}
 
             {/* Items de admin */}
-            {user?.rol === 'admin' && (
+            {user?.role === 'admin' && (
               <>
                 <div className="border-t border-green-200 my-4" />
                 {adminItems.map((item) => {
@@ -222,8 +223,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       key={item.path}
                       onClick={() => handleNavigation(item.path)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
-                          ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg'
-                          : 'text-gray-700 hover:bg-green-50'
+                        ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-green-50'
                         }`}
                     >
                       <Icon className="w-5 h-5" />
