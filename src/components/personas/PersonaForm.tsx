@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PersonasService } from '@/services/personas.service'
 import { MinisteriosService } from '@/services/ministerios.service'
@@ -11,20 +11,53 @@ import { SelectDepartamento } from '@/components/ui/SelectDepartamento'
 import { SelectMunicipio } from '@/components/ui/SelectMunicipio'
 import { FotoUploader } from '@/components/ui/FotoUploader'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { ArrowLeft, Save, CheckCircle2, XCircle } from 'lucide-react'
+import { ArrowLeft, Save, CheckCircle2, XCircle, User, MapPin, Briefcase, Heart } from 'lucide-react'
 import type { PersonaCreate, Ministerio, EscalaCrecimiento } from '@/types'
 
+// Estilos CSS personalizados para el gradiente y la sombra de los inputs (Mismos que el formulario anterior)
+const customStyles = `
+.card-gradient-bg {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); /* Fondo suave */
+}
+.input-shadow {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.input-shadow:focus, .input-shadow:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    border-color: #10b981; /* esmeralda-500 */
+}
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.section-card {
+    background-color: white;
+    border-radius: 1.5rem; /* rounded-3xl */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem; /* p-6 */
+    transition: all 0.3s ease;
+}
+.section-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+`
+
+// Componente principal del formulario
 export const PersonaForm: React.FC = () => {
   const navigate = useNavigate()
   const { addPersona } = usePersonasStore()
 
-  // Estados
+  // Estados (Lógica 100% intacta)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [ministerios, setMinisterios] = useState<Ministerio[]>([])
   const [escalas, setEscalas] = useState<EscalaCrecimiento[]>([])
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success'>('idle')
-  
+
   // 🔑 PASO 1: Verificación de cédula
   const [cedulaVerificada, setCedulaVerificada] = useState(false)
   const [ministeriosSeleccionados, setMinisteriosSeleccionados] = useState<string[]>([])
@@ -180,423 +213,495 @@ export const PersonaForm: React.FC = () => {
     }
   }
 
-  // 🔒 PASO 1: Verificación de cédula
-  if (!cedulaVerificada) {
-    return (
-      <form className="max-w-md mx-auto space-y-6 p-4">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Verificación de Identidad
-          </h2>
-          <p className="text-gray-600 text-sm">
-            Ingresa el número de identificación
-          </p>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-lg p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tipo de Documento
-            </label>
-            <select
-              name="tipo_id"
-              value={formData.tipo_id}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <option value="CC">Cédula de Ciudadanía</option>
-              <option value="TI">Tarjeta de Identidad</option>
-              <option value="CE">Cédula de Extranjería</option>
-              <option value="PA">Pasaporte</option>
-            </select>
-          </div>
-
-          <Input
-            label="Número de Identificación"
-            name="numero_id"
-            value={formData.numero_id}
-            onChange={handleChange}
-            placeholder="Ej: 1234567890"
-            error={errors.numero_id}
-            className="mb-4"
-          />
-
-          {/* Estado de validación */}
-          {cedulaValidation.isValidating && (
-            <div className="flex items-center gap-2 text-blue-600 bg-blue-50 p-3 rounded-lg">
-              <LoadingSpinner size="sm" text="" />
-              <span className="text-sm font-medium">Verificando...</span>
-            </div>
-          )}
-
-          {!cedulaValidation.isValidating && cedulaValidation.mensaje && (
-            <div
-              className={`flex items-center gap-2 p-3 rounded-lg ${
-                cedulaValidation.existe
-                  ? 'bg-red-50 text-red-700'
-                  : 'bg-green-50 text-green-700'
-              }`}
-            >
-              {cedulaValidation.existe ? (
-                <XCircle className="w-5 h-5" />
-              ) : (
-                <CheckCircle2 className="w-5 h-5" />
-              )}
-              <span className="text-sm font-medium">{cedulaValidation.mensaje}</span>
-            </div>
-          )}
-
-          <Button
-            type="button"
-            onClick={handleVerificarCedula}
-            variant="primary"
-            fullWidth
-            disabled={cedulaValidation.isValidating || !formData.numero_id}
-          >
-            Verificar y Continuar
-          </Button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/personas')}
-            className="w-full text-sm text-gray-600 hover:text-gray-900"
-          >
-            Cancelar
-          </button>
-        </div>
-      </form>
-    )
-  }
-
-  // ✅ PASO 2: Formulario completo (cédula verificada)
+  // Renderizado del formulario rediseñado
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4">
-      {saveStatus === 'saving' && (
-        <LoadingSpinner fullScreen text="Guardando persona..." />
-      )}
-      {saveStatus === 'success' && (
-        <div className="fixed inset-0 bg-white bg-opacity-90 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-3">
-          <CheckCircle2 className="w-16 h-16 text-green-600" />
-          <p className="text-lg font-semibold text-gray-800">Guardado con éxito</p>
-        </div>
-      )}
+    <>
+      {/* Inyectar estilos personalizados */}
+      <style>{customStyles}</style>
 
-      {/* Header compacto */}
-      <div className="flex items-center justify-between sticky top-0 bg-white z-10 pb-4">
-        <button
-          type="button"
-          onClick={() => navigate('/personas')}
-          className="flex items-center gap-2 text-gray-600"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm">Volver</span>
-        </button>
+      <div className="max-w-5xl mx-auto p-4 md:p-8 card-gradient-bg rounded-3xl shadow-2xl fade-in">
+        <h2 className="text-3xl font-extrabold text-gray-900 mb-8 border-b pb-4">
+          Registro de Nueva Persona
+        </h2>
 
-        <Button type="submit" variant="primary" disabled={loading}>
-          <Save className="w-4 h-4" />
-          Guardar
-        </Button>
-      </div>
+        {/* 🔒 PASO 1: Verificación de cédula (Rediseñado) */}
+        {!cedulaVerificada && (
+          <form onSubmit={(e) => e.preventDefault()} className="max-w-md mx-auto space-y-6 fade-in">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                Verificación de Identidad
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Ingresa el número de identificación para continuar el registro.
+              </p>
+            </div>
 
-      {/* Foto */}
-      <div className="bg-white rounded-xl shadow-sm p-4">
-        <FotoUploader
-          value={formData.url_foto}
-          onChange={(url) => setFormData((prev) => ({ ...prev, url_foto: url }))}
-        />
-      </div>
+            <div className="section-card space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Tipo de Documento
+                </label>
+                <select
+                  name="tipo_id"
+                  value={formData.tipo_id}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none input-shadow text-gray-800 bg-white"
+                >
+                  <option value="CC">Cédula de Ciudadanía</option>
+                  <option value="TI">Tarjeta de Identidad</option>
+                  <option value="CE">Cédula de Extranjería</option>
+                  <option value="PA">Pasaporte</option>
+                </select>
+              </div>
 
-      {/* Identificación (resumida) */}
-      <div className="bg-white rounded-xl shadow-sm p-4">
-        <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5 text-green-600" />
-          Identificación Verificada
-        </h3>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <span className="text-gray-600">Tipo:</span>{' '}
-            <span className="font-medium">{formData.tipo_id}</span>
-          </div>
-          <div>
-            <span className="text-gray-600">Número:</span>{' '}
-            <span className="font-medium">{formData.numero_id}</span>
-          </div>
-        </div>
-      </div>
+              {/* Se asume que el componente Input ya maneja el estilo de los inputs */}
+              <Input
+                label="Número de Identificación"
+                name="numero_id"
+                value={formData.numero_id}
+                onChange={handleChange}
+                placeholder="Ej: 1234567890"
+                error={errors.numero_id}
+                className="mb-4"
+              />
 
-      {/* Datos Personales - COMPACTO */}
-      <div className="bg-white rounded-xl shadow-sm p-4 space-y-3">
-        <h3 className="font-bold text-gray-900">👤 Datos Personales</h3>
-        
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="Nombres *"
-            name="nombres"
-            value={formData.nombres}
-            onChange={handleChange}
-            error={errors.nombres}
-          />
-          <Input
-            label="Primer Apellido *"
-            name="primer_apellido"
-            value={formData.primer_apellido}
-            onChange={handleChange}
-            error={errors.primer_apellido}
-          />
-        </div>
+              {/* Estado de validación */}
+              {cedulaValidation.isValidating && (
+                <div className="flex items-center gap-3 text-emerald-600 bg-emerald-50 p-4 rounded-xl input-shadow">
+                  <LoadingSpinner size="sm" text="" />
+                  <span className="text-sm font-semibold">Verificando disponibilidad...</span>
+                </div>
+              )}
 
-        <Input
-          label="Segundo Apellido"
-          name="segundo_apellido"
-          value={formData.segundo_apellido || ''}
-          onChange={handleChange}
-        />
+              {!cedulaValidation.isValidating && cedulaValidation.mensaje && (
+                <div
+                  className={`flex items-center gap-3 p-4 rounded-xl input-shadow ${cedulaValidation.existe
+                      ? 'bg-red-50 text-red-700'
+                      : 'bg-emerald-50 text-emerald-700'
+                    }`}
+                >
+                  {cedulaValidation.existe ? (
+                    <XCircle className="w-5 h-5" />
+                  ) : (
+                    <CheckCircle2 className="w-5 h-5" />
+                  )}
+                  <span className="text-sm font-semibold">{cedulaValidation.mensaje}</span>
+                </div>
+              )}
 
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="Fecha Nac. *"
-            name="fecha_nacimiento"
-            type="date"
-            value={formData.fecha_nacimiento}
-            onChange={handleChange}
-            error={errors.fecha_nacimiento}
-          />
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Género *
-            </label>
-            <select
-              name="genero"
-              value={formData.genero}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-green-300 rounded-lg text-sm"
-            >
-              <option value="Masculino">Masculino</option>
-              <option value="Femenino">Femenino</option>
-            </select>
-          </div>
-        </div>
+              <Button
+                type="button"
+                onClick={handleVerificarCedula}
+                disabled={cedulaValidation.isValidating || !formData.numero_id}
+                className="w-full text-white hover:bg-emerald-600 shadow-lg hover:shadow-xl transition-all duration-300"
+                style={{ background: 'linear-gradient(45deg, #10b981 0%, #059669 100%)' }}
+              >
+                Verificar y Continuar
+              </Button>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Estado Civil *
-          </label>
-          <select
-            name="estado_civil"
-            value={formData.estado_civil}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-green-300 rounded-lg text-sm"
-          >
-            <option value="Soltero">Soltero</option>
-            <option value="Casado">Casado</option>
-            <option value="Unión Libre">Unión Libre</option>
-            <option value="Divorciado">Divorciado</option>
-            <option value="Viudo">Viudo</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Contacto - COMPACTO */}
-      <div className="bg-white rounded-xl shadow-sm p-4 space-y-3">
-        <h3 className="font-bold text-gray-900">📞 Contacto</h3>
-        
-        <Input
-          label="Teléfono *"
-          name="telefono"
-          value={formData.telefono}
-          onChange={handleChange}
-          placeholder="3001234567"
-          error={errors.telefono}
-        />
-
-        <Input
-          label="Email"
-          name="email"
-          type="email"
-          value={formData.email || ''}
-          onChange={handleChange}
-          placeholder="correo@ejemplo.com"
-          error={errors.email}
-        />
-      </div>
-
-      {/* Ubicación - COMPACTO */}
-      <div className="bg-white rounded-xl shadow-sm p-4 space-y-3">
-        <h3 className="font-bold text-gray-900">📍 Ubicación</h3>
-        
-        <Input
-          label="Barrio"
-          name="barrio"
-          value={formData.barrio || ''}
-          onChange={handleChange}
-        />
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Departamento *
-            </label>
-            <SelectDepartamento
-              value={formData.departamento}
-              onChange={(value) =>
-                setFormData((prev) => ({ ...prev, departamento: value, municipio: '' }))
-              }
-            />
-            {errors.departamento && (
-              <p className="text-red-500 text-xs mt-1">{errors.departamento}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Municipio *
-            </label>
-            <SelectMunicipio
-              departamento={formData.departamento}
-              value={formData.municipio}
-              onChange={(value) => setFormData((prev) => ({ ...prev, municipio: value }))}
-            />
-            {errors.municipio && (
-              <p className="text-red-500 text-xs mt-1">{errors.municipio}</p>
-            )}
-          </div>
-        </div>
-
-        <Input
-          label="Dirección"
-          name="direccion"
-          value={formData.direccion || ''}
-          onChange={handleChange}
-        />
-      </div>
-
-      {/* Educación - COMPACTO */}
-      <div className="bg-white rounded-xl shadow-sm p-4 space-y-3">
-        <h3 className="font-bold text-gray-900">🎓 Educación</h3>
-        
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nivel Educativo
-            </label>
-            <select
-              name="nivel_educativo"
-              value={formData.nivel_educativo}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-green-300 rounded-lg text-sm"
-            >
-              <option value="Primaria">Primaria</option>
-              <option value="Secundaria">Secundaria</option>
-              <option value="Técnico">Técnico</option>
-              <option value="Tecnólogo">Tecnólogo</option>
-              <option value="Universitario">Universitario</option>
-              <option value="Posgrado">Posgrado</option>
-            </select>
-          </div>
-
-          <Input
-            label="Ocupación"
-            name="ocupacion"
-            value={formData.ocupacion || ''}
-            onChange={handleChange}
-          />
-        </div>
-      </div>
-
-      {/* Espiritual - COMPACTO */}
-      <div className="bg-white rounded-xl shadow-sm p-4 space-y-3">
-        <h3 className="font-bold text-gray-900">⛪ Información Espiritual</h3>
-        
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            name="bautizado"
-            checked={formData.bautizado}
-            onChange={handleChange}
-            className="w-4 h-4 text-green-600 border-green-300 rounded"
-          />
-          <span className="text-sm text-gray-700">¿Está bautizado?</span>
-        </label>
-
-        {formData.bautizado && (
-          <Input
-            label="Fecha de Bautismo"
-            name="fecha_bautismo"
-            type="date"
-            value={formData.fecha_bautismo || ''}
-            onChange={handleChange}
-          />
+              <button
+                type="button"
+                onClick={() => navigate('/personas')}
+                className="w-full text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
         )}
 
-        {/* Ministerios */}
-        {ministerios.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ministerios
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {ministerios.map((m) => (
-                <label
-                  key={m.id}
-                  className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-green-50 cursor-pointer"
-                >
+        {/* ✅ PASO 2: Formulario completo (cédula verificada) - Rediseñado */}
+        {cedulaVerificada && (
+          <form onSubmit={handleSubmit} className="space-y-8 fade-in">
+            {saveStatus === 'saving' && (
+              <LoadingSpinner fullScreen text="Guardando persona..." />
+            )}
+            {saveStatus === 'success' && (
+              <div className="fixed inset-0 bg-white bg-opacity-90 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-5">
+                <CheckCircle2 className="w-20 h-20 text-emerald-600 animate-pulse" />
+                <p className="text-xl font-extrabold text-gray-800">¡Guardado con éxito!</p>
+              </div>
+            )}
+
+            {/* Header compacto (Fijo en la parte superior) */}
+            <div className="flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur-sm z-10 p-4 rounded-xl shadow-md">
+              <button
+                type="button"
+                onClick={() => navigate('/personas')}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-semibold transition-colors duration-200"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="text-sm">Volver al Listado</span>
+              </button>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="text-white hover:bg-emerald-600 shadow-lg hover:shadow-xl transition-all duration-300"
+                style={{ background: 'linear-gradient(45deg, #10b981 0%, #059669 100%)' }}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Guardar Persona
+              </Button>
+            </div>
+
+            {/* Contenido del Formulario en Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Columna 1: Foto e Identificación */}
+              <div className="lg:col-span-1 space-y-8">
+                {/* Foto */}
+                <div className="section-card fade-in" style={{ animationDelay: '0.1s' }}>
+                  <h3 className="font-extrabold text-xl text-gray-900 mb-4 flex items-center gap-2">
+                    📸 Foto de Perfil
+                  </h3>
+                  <FotoUploader
+                    url={formData.url_foto}
+                    onUpload={(url) => setFormData((prev) => ({ ...prev, url_foto: url }))}
+                    onRemove={() => setFormData((prev) => ({ ...prev, url_foto: null }))}
+                  />
+                </div>
+
+                {/* Identificación (resumida) */}
+                <div className="section-card fade-in" style={{ animationDelay: '0.2s' }}>
+                  <h3 className="font-extrabold text-xl text-gray-900 mb-4 flex items-center gap-2">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                    Identificación Verificada
+                  </h3>
+                  <div className="space-y-2 p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm">
+                      <span className="text-gray-600 font-medium">Tipo:</span>{' '}
+                      <span className="font-bold text-gray-800">{formData.tipo_id}</span>
+                    </p>
+                    <p className="text-sm">
+                      <span className="text-gray-600 font-medium">Número:</span>{' '}
+                      <span className="font-bold text-gray-800">{formData.numero_id}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Columna 2: Datos Personales y Contacto */}
+              <div className="lg:col-span-2 space-y-8">
+                {/* Datos Personales */}
+                <div className="section-card fade-in" style={{ animationDelay: '0.3s' }}>
+                  <h3 className="font-extrabold text-xl text-gray-900 mb-6 flex items-center gap-2">
+                    <User className="w-6 h-6 text-emerald-600" />
+                    Datos Personales
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="Nombres *"
+                      name="nombres"
+                      value={formData.nombres}
+                      onChange={handleChange}
+                      error={errors.nombres}
+                    />
+                    <Input
+                      label="Primer Apellido *"
+                      name="primer_apellido"
+                      value={formData.primer_apellido}
+                      onChange={handleChange}
+                      error={errors.primer_apellido}
+                    />
+                  </div>
+
+                  <div className="mt-6">
+                    <Input
+                      label="Segundo Apellido"
+                      name="segundo_apellido"
+                      value={formData.segundo_apellido || ''}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <Input
+                      label="Fecha Nacimiento *"
+                      name="fecha_nacimiento"
+                      type="date"
+                      value={formData.fecha_nacimiento}
+                      onChange={handleChange}
+                      error={errors.fecha_nacimiento}
+                    />
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Género *
+                      </label>
+                      <select
+                        name="genero"
+                        value={formData.genero}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none input-shadow text-gray-800 bg-white"
+                      >
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mt-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Estado Civil *
+                    </label>
+                    <select
+                      name="estado_civil"
+                      value={formData.estado_civil}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none input-shadow text-gray-800 bg-white"
+                    >
+                      <option value="Soltero">Soltero</option>
+                      <option value="Casado">Casado</option>
+                      <option value="Unión Libre">Unión Libre</option>
+                      <option value="Divorciado">Divorciado</option>
+                      <option value="Viudo">Viudo</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Contacto */}
+                <div className="section-card fade-in" style={{ animationDelay: '0.4s' }}>
+                  <h3 className="font-extrabold text-xl text-gray-900 mb-6 flex items-center gap-2">
+                    📞 Contacto
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="Teléfono *"
+                      name="telefono"
+                      value={formData.telefono}
+                      onChange={handleChange}
+                      placeholder="3001234567"
+                      error={errors.telefono}
+                    />
+
+                    <Input
+                      label="Email"
+                      name="email"
+                      type="email"
+                      value={formData.email || ''}
+                      onChange={handleChange}
+                      placeholder="correo@ejemplo.com"
+                      error={errors.email}
+                    />
+                  </div>
+                </div>
+
+                {/* Ubicación */}
+                <div className="section-card fade-in" style={{ animationDelay: '0.5s' }}>
+                  <h3 className="font-extrabold text-xl text-gray-900 mb-6 flex items-center gap-2">
+                    <MapPin className="w-6 h-6 text-emerald-600" />
+                    Ubicación
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Departamento *
+                      </label>
+                      {/* Se asume que SelectDepartamento ya tiene los estilos de input-shadow */}
+                      <SelectDepartamento
+                        value={formData.departamento}
+                        onChange={(value) =>
+                          setFormData((prev) => ({ ...prev, departamento: value, municipio: '' }))
+                        }
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none input-shadow text-gray-800 bg-white"
+                      />
+                      {errors.departamento && (
+                        <p className="text-red-500 text-xs mt-1">{errors.departamento}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Municipio *
+                      </label>
+                      {/* Se asume que SelectMunicipio ya tiene los estilos de input-shadow */}
+                      <SelectMunicipio
+                        departamento={formData.departamento}
+                        value={formData.municipio}
+                        onChange={(value) => setFormData((prev) => ({ ...prev, municipio: value }))}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none input-shadow text-gray-800 bg-white"
+                      />
+                      {errors.municipio && (
+                        <p className="text-red-500 text-xs mt-1">{errors.municipio}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-6">
+                    <Input
+                      label="Dirección"
+                      name="direccion"
+                      value={formData.direccion || ''}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  <div className="mt-6">
+                    <Input
+                      label="Barrio"
+                      name="barrio"
+                      value={formData.barrio || ''}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Fila 2: Educación y Espiritual */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Educación */}
+              <div className="section-card fade-in" style={{ animationDelay: '0.6s' }}>
+                <h3 className="font-extrabold text-xl text-gray-900 mb-6 flex items-center gap-2">
+                  <Briefcase className="w-6 h-6 text-emerald-600" />
+                  Educación y Ocupación
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Nivel Educativo
+                    </label>
+                    <select
+                      name="nivel_educativo"
+                      value={formData.nivel_educativo}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none input-shadow text-gray-800 bg-white"
+                    >
+                      <option value="Primaria">Primaria</option>
+                      <option value="Secundaria">Secundaria</option>
+                      <option value="Técnico">Técnico</option>
+                      <option value="Tecnólogo">Tecnólogo</option>
+                      <option value="Universitario">Universitario</option>
+                      <option value="Posgrado">Posgrado</option>
+                    </select>
+                  </div>
+
+                  <Input
+                    label="Ocupación"
+                    name="ocupacion"
+                    value={formData.ocupacion || ''}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              {/* Espiritual */}
+              <div className="section-card fade-in" style={{ animationDelay: '0.7s' }}>
+                <h3 className="font-extrabold text-xl text-gray-900 mb-6 flex items-center gap-2">
+                  <Heart className="w-6 h-6 text-emerald-600" />
+                  Información Espiritual
+                </h3>
+
+                <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl input-shadow cursor-pointer hover:bg-gray-100 transition-colors duration-200">
                   <input
                     type="checkbox"
-                    checked={ministeriosSeleccionados.includes(m.id)}
-                    onChange={() => handleMinisterioToggle(m.id)}
-                    className="w-4 h-4 text-green-600 border-green-300 rounded"
+                    name="bautizado"
+                    checked={formData.bautizado}
+                    onChange={handleChange}
+                    className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                   />
-                  <span className="text-xs text-gray-700">{m.nombre}</span>
+                  <span className="text-base font-medium text-gray-700">¿Está bautizado?</span>
                 </label>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* Escalas */}
-        {escalas.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Escalas de Crecimiento
-            </label>
-            <div className="space-y-2">
-              {escalas.map((e) => (
-                <label
-                  key={e.id}
-                  className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-green-50 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={escalasSeleccionadas.includes(e.id)}
-                    onChange={() => handleEscalaToggle(e.id)}
-                    className="w-4 h-4 text-green-600 border-green-300 rounded"
-                  />
-                  <span className="text-xs text-gray-700">
-                    {/* {e.orden}. {e.nombre} */}
-                    {e.nombre}
-                  </span>
-                </label>
-              ))}
+                {formData.bautizado && (
+                  <div className="mt-4 fade-in">
+                    <Input
+                      label="Fecha de Bautismo"
+                      name="fecha_bautismo"
+                      type="date"
+                      value={formData.fecha_bautismo || ''}
+                      onChange={handleChange}
+                    />
+                  </div>
+                )}
+
+                {/* Ministerios */}
+                {ministerios.length > 0 && (
+                  <div className="mt-6 fade-in">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Ministerios
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {ministerios.map((m) => (
+                        <label
+                          key={m.id}
+                          className={`flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-all duration-200 ${ministeriosSeleccionados.includes(m.id)
+                              ? 'bg-emerald-100 border-2 border-emerald-500 font-semibold'
+                              : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                            }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={ministeriosSeleccionados.includes(m.id)}
+                            onChange={() => handleMinisterioToggle(m.id)}
+                            className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                          />
+                          <span className="text-sm text-gray-700">{m.nombre}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Escalas */}
+                {escalas.length > 0 && (
+                  <div className="mt-6 fade-in">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Escalas de Crecimiento
+                    </label>
+                    <div className="space-y-3">
+                      {escalas.map((e) => (
+                        <label
+                          key={e.id}
+                          className={`flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-all duration-200 ${escalasSeleccionadas.includes(e.id)
+                              ? 'bg-emerald-100 border-2 border-emerald-500 font-semibold'
+                              : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                            }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={escalasSeleccionadas.includes(e.id)}
+                            onChange={() => handleEscalaToggle(e.id)}
+                            className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                          />
+                          <span className="text-sm text-gray-700">
+                            {e.nombre}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+
+            {/* Botones finales (Rediseñados) */}
+            <div className="flex gap-4 pt-6 justify-end fade-in" style={{ animationDelay: '0.8s' }}>
+              <Button
+                type="button"
+                onClick={() => navigate('/personas')}
+                disabled={loading}
+                className="bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 shadow-md px-8 py-3"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="text-white hover:bg-emerald-600 shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3"
+                style={{ background: 'linear-gradient(45deg, #10b981 0%, #059669 100%)' }}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {loading ? 'Guardando...' : 'Guardar Persona'}
+              </Button>
+            </div>
+          </form>
         )}
       </div>
-
-      {/* Botones finales */}
-      <div className="flex gap-3 pb-8">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => navigate('/personas')}
-          fullWidth
-        >
-          Cancelar
-        </Button>
-        <Button type="submit" variant="primary" disabled={loading} fullWidth>
-          Guardar
-        </Button>
-      </div>
-    </form>
+    </>
   )
 }
