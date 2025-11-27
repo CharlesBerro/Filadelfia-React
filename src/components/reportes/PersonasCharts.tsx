@@ -131,7 +131,7 @@ export const PersonasCharts: React.FC<PersonasChartsProps> = ({
                     </CardHeader>
                     <CardContent className="p-6">
                         {ageData && ageData.length > 0 && ageData.some(d => d.value > 0) ? (
-                            <div className="h-[300px] w-full">
+                            <div className="h-[300px] w-full" style={{ minHeight: '300px' }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart
                                         data={ageData}

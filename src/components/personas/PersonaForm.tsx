@@ -276,8 +276,8 @@ export const PersonaForm: React.FC = () => {
               {!cedulaValidation.isValidating && cedulaValidation.mensaje && (
                 <div
                   className={`flex items-center gap-3 p-4 rounded-xl input-shadow ${cedulaValidation.existe
-                      ? 'bg-red-50 text-red-700'
-                      : 'bg-emerald-50 text-emerald-700'
+                    ? 'bg-red-50 text-red-700'
+                    : 'bg-emerald-50 text-emerald-700'
                     }`}
                 >
                   {cedulaValidation.existe ? (
@@ -289,15 +289,15 @@ export const PersonaForm: React.FC = () => {
                 </div>
               )}
 
-              <Button
+              <button
                 type="button"
                 onClick={handleVerificarCedula}
                 disabled={cedulaValidation.isValidating || !formData.numero_id}
-                className="w-full text-white hover:bg-emerald-600 shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full px-4 py-3 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: 'linear-gradient(45deg, #10b981 0%, #059669 100%)' }}
               >
                 Verificar y Continuar
-              </Button>
+              </button>
 
               <button
                 type="button"
@@ -334,15 +334,15 @@ export const PersonaForm: React.FC = () => {
                 <span className="text-sm">Volver al Listado</span>
               </button>
 
-              <Button
+              <button
                 type="submit"
                 disabled={loading}
-                className="text-white hover:bg-emerald-600 shadow-lg hover:shadow-xl transition-all duration-300"
+                className="px-4 py-3 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: 'linear-gradient(45deg, #10b981 0%, #059669 100%)' }}
               >
                 <Save className="w-4 h-4 mr-2" />
                 Guardar Persona
-              </Button>
+              </button>
             </div>
 
             {/* Contenido del Formulario en Cards */}
@@ -355,9 +355,8 @@ export const PersonaForm: React.FC = () => {
                     📸 Foto de Perfil
                   </h3>
                   <FotoUploader
-                    url={formData.url_foto}
-                    onUpload={(url) => setFormData((prev) => ({ ...prev, url_foto: url }))}
-                    onRemove={() => setFormData((prev) => ({ ...prev, url_foto: null }))}
+                    value={formData.url_foto || null}
+                    onChange={(url) => setFormData((prev) => ({ ...prev, url_foto: url }))}
                   />
                 </div>
 
@@ -630,8 +629,8 @@ export const PersonaForm: React.FC = () => {
                         <label
                           key={m.id}
                           className={`flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-all duration-200 ${ministeriosSeleccionados.includes(m.id)
-                              ? 'bg-emerald-100 border-2 border-emerald-500 font-semibold'
-                              : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                            ? 'bg-emerald-100 border-2 border-emerald-500 font-semibold'
+                            : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
                             }`}
                         >
                           <input
@@ -658,8 +657,8 @@ export const PersonaForm: React.FC = () => {
                         <label
                           key={e.id}
                           className={`flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-all duration-200 ${escalasSeleccionadas.includes(e.id)
-                              ? 'bg-emerald-100 border-2 border-emerald-500 font-semibold'
-                              : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                            ? 'bg-emerald-100 border-2 border-emerald-500 font-semibold'
+                            : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
                             }`}
                         >
                           <input
@@ -681,23 +680,23 @@ export const PersonaForm: React.FC = () => {
 
             {/* Botones finales (Rediseñados) */}
             <div className="flex gap-4 pt-6 justify-end fade-in" style={{ animationDelay: '0.8s' }}>
-              <Button
+              <button
                 type="button"
                 onClick={() => navigate('/personas')}
                 disabled={loading}
-                className="bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 shadow-md px-8 py-3"
+                className="px-8 py-3 bg-white text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 shadow-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancelar
-              </Button>
-              <Button
+              </button>
+              <button
                 type="submit"
                 disabled={loading}
-                className="text-white hover:bg-emerald-600 shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3"
+                className="px-8 py-3 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: 'linear-gradient(45deg, #10b981 0%, #059669 100%)' }}
               >
                 <Save className="w-4 h-4 mr-2" />
                 {loading ? 'Guardando...' : 'Guardar Persona'}
-              </Button>
+              </button>
             </div>
           </form>
         )}

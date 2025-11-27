@@ -1,36 +1,50 @@
 import React, { useEffect, useState } from 'react'
-import { Layout } from '@/components/layout/Layout'
-import { Card, CardContent } from '@/components/ui/Card'
-import { useAuthStore } from '@/stores/auth.store'
 import { supabase } from '@/lib/supabase'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { Shield, User, Trash2 } from 'lucide-react'
+import { createClient } from '@supabase/supabase-js'
+import { useAuthStore } from '@/stores/auth.store'
+import { Users, Shield, Search, UserPlus, Edit, Trash2, AlertTriangle } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
+import { UserForm } from '@/components/usuarios/UserForm'
+import { Layout } from '@/components/layout/Layout'
+import { SavingOverlay } from '@/components/ui/SavingOverlay'
 
 interface UserProfile {
     id: string
+    full_name: string
     email?: string
-    full_name?: string
     role: 'admin' | 'user' | 'contador'
     created_at: string
-    last_sign_in_at?: string
 }
 
-export const UsuariosPage: React.FC = () => {
-    const { user } = useAuthStore()
+export const UsuariosPage = () => {
+    const { user: currentUser } = useAuthStore()
     const [users, setUsers] = useState<UserProfile[]>([])
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
+    const [searchTerm, setSearchTerm] = useState('')
+
+    // Modal State
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [editingUser, setEditingUser] = useState<UserProfile | null>(null)
+
+    // Saving State
+    const [isSaving, setIsSaving] = useState(false)
+    const [saveSuccess, setSaveSuccess] = useState(false)
+
+    // Delete State
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+    const [deletingUser, setDeletingUser] = useState<UserProfile | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
+    const [deleteSuccess, setDeleteSuccess] = useState(false)
 
     useEffect(() => {
-        if (user?.role === 'admin') {
-            fetchUsers()
-        }
-    }, [user])
+        fetchUsers()
+    }, [])
 
     const fetchUsers = async () => {
         try {
             setLoading(true)
-            // Intentamos obtener de la tabla 'profiles' que es la que usa AuthService
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
@@ -38,38 +52,157 @@ export const UsuariosPage: React.FC = () => {
 
             if (error) throw error
             setUsers(data || [])
-        } catch (err: any) {
-            console.error('Error fetching users:', err)
-            setError('Error al cargar usuarios. Asegúrate de tener permisos de administrador.')
+        } catch (error) {
+            console.error('Error fetching users:', error)
         } finally {
             setLoading(false)
         }
     }
 
-    const handleRoleChange = async (userId: string, newRole: 'admin' | 'user' | 'contador') => {
+    // Create Secondary Client for User Creation (to avoid logging out admin)
+    const createSecondaryClient = () => createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_ANON_KEY,
+        {
+            auth: {
+                persistSession: false,
+                autoRefreshToken: false,
+                detectSessionInUrl: false
+            }
+        }
+    )
+
+    const handleSaveUser = async (formData: any) => {
         try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({ role: newRole })
-                .eq('id', userId)
+            setIsSaving(true)
+            setSaveSuccess(false)
 
-            if (error) throw error
+            if (editingUser) {
+                // UPDATE Existing User (Profile only)
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({
+                        full_name: formData.full_name,
+                        role: formData.role
+                    })
+                    .eq('id', editingUser.id)
 
-            // Actualizar estado local
-            setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
-        } catch (err: any) {
-            console.error('Error updating role:', err)
-            alert('Error al actualizar rol')
+                if (error) throw error
+            } else {
+                // CREATE New User
+                const tempSupabase = createSecondaryClient()
+
+                const { data, error } = await tempSupabase.auth.signUp({
+                    email: formData.email,
+                    password: formData.password,
+                    options: {
+                        emailRedirectTo: undefined,
+                        data: {
+                            nombre: formData.full_name
+                        }
+                    }
+                })
+
+                if (error) throw error
+
+                if (data.user) {
+                    // Manually create the profile (since we removed the trigger)
+                    const { error: profileError } = await supabase
+                        .from('profiles')
+                        .insert({
+                            id: data.user.id,
+                            full_name: formData.full_name,
+                            email: formData.email,
+                            role: formData.role
+                        })
+
+                    if (profileError) {
+                        console.error('Error creating profile:', profileError)
+                        throw new Error('Error al crear el perfil: ' + profileError.message)
+                    }
+                }
+            }
+
+            setSaveSuccess(true)
+            fetchUsers()
+
+            // Close modal after short delay to show success
+            setTimeout(() => {
+                setIsModalOpen(false)
+                setEditingUser(null)
+                setIsSaving(false)
+                setSaveSuccess(false)
+            }, 1500)
+
+        } catch (error: any) {
+            console.error('Error saving user:', error)
+            alert('Error: ' + error.message)
+            setIsSaving(false)
         }
     }
 
-    if (user?.role !== 'admin') {
+    const openDeleteModal = (user: UserProfile) => {
+        setDeletingUser(user)
+        setIsDeleteModalOpen(true)
+    }
+
+    const handleDeleteUser = async () => {
+        if (!deletingUser) return
+
+        try {
+            setIsDeleting(true)
+            setDeleteSuccess(false)
+
+            const { error } = await supabase
+                .from('profiles')
+                .delete()
+                .eq('id', deletingUser.id)
+
+            if (error) throw error
+
+            setDeleteSuccess(true)
+            fetchUsers()
+
+            // Close modal after short delay
+            setTimeout(() => {
+                setIsDeleteModalOpen(false)
+                setDeletingUser(null)
+                setIsDeleting(false)
+                setDeleteSuccess(false)
+            }, 1500)
+
+        } catch (error: any) {
+            console.error('Error deleting user:', error)
+            alert('Error al eliminar: ' + error.message)
+            setIsDeleting(false)
+        }
+    }
+
+    const openCreateModal = () => {
+        setEditingUser(null)
+        setIsModalOpen(true)
+    }
+
+    const openEditModal = (user: UserProfile) => {
+        setEditingUser(user)
+        setIsModalOpen(true)
+    }
+
+    const filteredUsers = users.filter(u =>
+        u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+
+    if (currentUser?.role !== 'admin') {
         return (
             <Layout>
-                <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-4">
-                    <Shield className="w-16 h-16 text-red-500 mb-4" />
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Acceso Restringido</h1>
-                    <p className="text-gray-600">Solo los administradores pueden acceder a esta página.</p>
+                <div className="flex items-center justify-center h-[60vh]">
+                    <div className="text-center p-8 bg-white rounded-lg shadow-md">
+                        <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Acceso Restringido</h1>
+                        <p className="text-gray-600">No tienes permisos para ver esta página.</p>
+                    </div>
                 </div>
             </Layout>
         )
@@ -77,78 +210,180 @@ export const UsuariosPage: React.FC = () => {
 
     return (
         <Layout>
-            <div className="min-h-full p-4 sm:p-6 lg:p-8 bg-gray-50">
-                <div className="max-w-7xl mx-auto space-y-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                                <User className="w-6 h-6" />
-                                Gestión de Usuarios
-                            </h1>
-                            <p className="text-gray-500">Administra roles y accesos de usuarios</p>
+            <div className="p-6 max-w-7xl mx-auto space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                            <Users className="w-8 h-8 text-green-600" />
+                            Gestión de Usuarios
+                        </h1>
+                        <p className="text-gray-500 mt-1">Administra los usuarios y sus roles</p>
+                    </div>
+                    <Button onClick={openCreateModal} className="flex items-center gap-2">
+                        <UserPlus className="w-4 h-4" />
+                        Crear Usuario
+                    </Button>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="p-4 border-b border-gray-200 bg-gray-50">
+                        <div className="relative max-w-md">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <Input
+                                name="search"
+                                placeholder="Buscar usuarios..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-10 bg-white"
+                            />
                         </div>
                     </div>
 
-                    {loading ? (
-                        <LoadingSpinner text="Cargando usuarios..." />
-                    ) : error ? (
-                        <div className="bg-red-50 p-4 rounded-lg text-red-600">{error}</div>
-                    ) : (
-                        <Card>
-                            <CardContent className="p-0 overflow-hidden">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Registro</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {users.map((u) => (
-                                            <tr key={u.id}>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                                            <User className="w-5 h-5 text-gray-500" />
-                                                        </div>
-                                                        <div className="ml-4">
-                                                            <div className="text-sm font-medium text-gray-900">{u.full_name || 'Usuario sin nombre'}</div>
-                                                            <div className="text-sm text-gray-500">{u.email || `ID: ${u.id.slice(0, 8)}...`}</div>
-                                                        </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Registro</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                            Cargando usuarios...
+                                        </td>
+                                    </tr>
+                                ) : filteredUsers.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                            No se encontraron usuarios
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filteredUsers.map((user) => (
+                                        <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold text-lg">
+                                                        {user.full_name?.charAt(0).toUpperCase() || 'U'}
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <select
-                                                        value={u.role}
-                                                        onChange={(e) => handleRoleChange(u.id, e.target.value as any)}
-                                                        className={`text-sm rounded-full px-3 py-1 font-semibold ${u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                                                            u.role === 'contador' ? 'bg-blue-100 text-blue-800' :
-                                                                'bg-green-100 text-green-800'
-                                                            }`}
+                                                    <div className="ml-4">
+                                                        <div className="text-sm font-medium text-gray-900">{user.full_name || 'Sin nombre'}</div>
+                                                        <div className="text-xs text-gray-500">{user.email || 'Sin email'}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin'
+                                                        ? 'bg-purple-100 text-purple-800'
+                                                        : user.role === 'contador'
+                                                            ? 'bg-blue-100 text-blue-800'
+                                                            : 'bg-green-100 text-green-800'
+                                                    }`}>
+                                                    {user.role === 'admin' ? 'Administrador' : user.role === 'contador' ? 'Contador' : 'Usuario'}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {new Date(user.created_at).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => openEditModal(user)}
+                                                        className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
+                                                        title="Editar"
                                                     >
-                                                        <option value="user">Usuario</option>
-                                                        <option value="contador">Contador</option>
-                                                        <option value="admin">Admin</option>
-                                                    </select>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {new Date(u.created_at).toLocaleDateString()}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button className="text-red-600 hover:text-red-900">
-                                                        <Trash2 className="w-5 h-5" />
+                                                        <Edit className="w-4 h-4" />
                                                     </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </CardContent>
-                        </Card>
-                    )}
+                                                    <button
+                                                        onClick={() => openDeleteModal(user)}
+                                                        className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
+                                                        title="Eliminar"
+                                                        disabled={user.id === currentUser?.id}
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
+                {/* Create/Edit Modal */}
+                <Modal
+                    isOpen={isModalOpen}
+                    onClose={() => !isSaving && setIsModalOpen(false)}
+                    title={editingUser ? 'Editar Usuario' : 'Crear Nuevo Usuario'}
+                >
+                    <UserForm
+                        user={editingUser}
+                        onSave={handleSaveUser}
+                        onCancel={() => setIsModalOpen(false)}
+                        isLoading={isSaving}
+                    />
+                </Modal>
+
+                {/* Delete Confirmation Modal */}
+                <Modal
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => !isDeleting && setIsDeleteModalOpen(false)}
+                    title="Confirmar Eliminación"
+                >
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg">
+                            <AlertTriangle className="w-12 h-12 text-red-600 flex-shrink-0" />
+                            <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                    ¿Estás seguro de eliminar a {deletingUser?.full_name}?
+                                </p>
+                                <p className="text-xs text-gray-600 mt-1">
+                                    Esta acción eliminará su perfil y revocará su acceso al sistema.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsDeleteModalOpen(false)}
+                                disabled={isDeleting}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={handleDeleteUser}
+                                disabled={isDeleting}
+                                className="bg-red-600 hover:bg-red-700"
+                            >
+                                {isDeleting ? 'Eliminando...' : 'Eliminar Usuario'}
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
+
+                {/* Save Overlay */}
+                <SavingOverlay
+                    isLoading={isSaving}
+                    isSuccess={saveSuccess}
+                    loadingText={editingUser ? "Actualizando usuario..." : "Creando usuario..."}
+                    successText={editingUser ? "Usuario actualizado" : "Usuario creado exitosamente"}
+                />
+
+                {/* Delete Overlay */}
+                <SavingOverlay
+                    isLoading={isDeleting}
+                    isSuccess={deleteSuccess}
+                    loadingText="Eliminando usuario..."
+                    successText="Usuario eliminado"
+                />
             </div>
         </Layout>
     )

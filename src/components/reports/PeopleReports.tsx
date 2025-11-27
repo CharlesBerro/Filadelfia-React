@@ -156,7 +156,7 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
                 {/* Gender Distribution - Donut Chart */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h3 className="text-lg font-bold text-gray-800 mb-6">Distribución por Género</h3>
-                    <div className="h-[300px] w-full">
+                    <div className="h-[300px] w-full" style={{ minHeight: '300px' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
@@ -191,7 +191,7 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
                 {/* Civil Status - Vertical Bar Chart */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h3 className="text-lg font-bold text-gray-800 mb-6">Estado Civil</h3>
-                    <div className="h-[300px] w-full">
+                    <div className="h-[300px] w-full" style={{ minHeight: '300px' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 data={civilStatusData}

@@ -15,6 +15,7 @@ export interface Persona {
   id: string
   user_id: string
   sede_id?: string
+  sede?: { nombre_sede: string } | null  // Relación con sedes
   tipo_id: string
   numero_id: string
   nombres: string
@@ -173,5 +174,14 @@ export interface PersonaEscala {
   fecha_inicio: string
   fecha_fin?: string | null
   completado: boolean
+  created_at: string
+}
+// Sede
+export interface Sede {
+  id: string
+  nombre_sede: string
+  direccion?: string | null
+  telefono?: string | null
+  lider?: string | null
   created_at: string
 }

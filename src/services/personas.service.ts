@@ -20,10 +20,15 @@ export class PersonasService {
 
       // Obtener rol desde el store de autenticación
       const { user: authUser } = useAuthStore.getState()
-      const rol = authUser?.rol
+      const rol = authUser?.role
       const esAdmin = rol === 'admin'
 
-      let query = supabase.from('persona').select('*')
+      let query = supabase
+        .from('persona')
+        .select(`
+          *,
+          sede:sede_id(nombre_sede)
+        `)
 
       if (!esAdmin) {
         // Usuario normal: solo sus propios registros
@@ -116,7 +121,10 @@ export class PersonasService {
     try {
       const { data, error } = await supabase
         .from('persona')
-        .select('*')
+        .select(`
+          *,
+          sede:sede_id(nombre_sede)
+        `)
         .eq('id', id)
         .single()
 

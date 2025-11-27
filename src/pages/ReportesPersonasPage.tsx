@@ -122,22 +122,35 @@ export const ReportesPersonasPage: React.FC = () => {
             '70+': 0
         }
 
+        console.log('📊 [Age Processing] Total personas filtradas para edad:', personasFiltradas.length)
+        let personasConEdad = 0
+        let personasSinEdad = 0
+
         personasFiltradas.forEach((p: any) => {
             if (p.fecha_nacimiento) {
+                personasConEdad++
                 const age = differenceInYears(new Date(), parseISO(p.fecha_nacimiento))
+                console.log(`📊 [Age] Persona ${p.full_name}: edad ${age} (nacimiento: ${p.fecha_nacimiento})`)
                 if (age <= 12) ageRanges['0-12']++
                 else if (age <= 17) ageRanges['13-17']++
                 else if (age <= 30) ageRanges['18-30']++
                 else if (age <= 50) ageRanges['31-50']++
                 else if (age <= 70) ageRanges['51-70']++
                 else ageRanges['70+']++
+            } else {
+                personasSinEdad++
             }
         })
+
+        console.log('📊 [Age Results] Personas con fecha de nacimiento:', personasConEdad)
+        console.log('📊 [Age Results] Personas sin fecha de nacimiento:', personasSinEdad)
+        console.log('📊 [Age Results] Distribución por rango:', ageRanges)
 
         const ageDataProcessed = Object.entries(ageRanges).map(([range, count]) => ({
             name: range,
             value: count
         }))
+        console.log('📊 [Age Results] ageDataProcessed:', ageDataProcessed)
         setAgeData(ageDataProcessed)
 
         // 4. Bautizados

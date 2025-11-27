@@ -4,9 +4,10 @@ import { useNavigate } from 'react-router-dom'
 import { PersonasService } from '@/services/personas.service'
 import { MinisteriosService } from '@/services/ministerios.service'
 import { EscalasService } from '@/services/escalas_services'
+import { SedesService } from '@/services/sedes.service'
 import { usePersonasStore } from '@/stores/personas.store'
 import { Eye, Edit2, Trash2, ChevronLeft, ChevronRight, Search, X, AlertTriangle } from 'lucide-react'
-import type { Persona, Ministerio, EscalaCrecimiento } from '@/types'
+import type { Persona, Ministerio, EscalaCrecimiento, Sede } from '@/types'
 
 /**
  * Tabla de Personas con:
@@ -35,10 +36,13 @@ export const PersonasTable: React.FC = () => {
   // FILTROS
   const [filtros, setFiltros] = useState({
     busqueda: '',
-    genero: '',
     estadoCivil: '',
     bautizado: '',
+    sede: '',
   })
+
+  // SEDES
+  const [sedes, setSedes] = useState<Sede[]>([])
 
   // MINISTERIOS Y ESCALAS por persona (cache)
   const [ministeriosPorPersona, setMinisteriosPorPersona] = useState<
@@ -51,7 +55,17 @@ export const PersonasTable: React.FC = () => {
   // Cargar personas al montar
   useEffect(() => {
     cargarPersonas()
+    cargarSedes()
   }, [])
+
+  const cargarSedes = async () => {
+    try {
+      const data = await SedesService.obtenerTodas()
+      setSedes(data)
+    } catch (error) {
+      console.error('Error cargando sedes:', error)
+    }
+  }
 
   const cargarPersonas = async () => {
     setLoading(true)
@@ -104,21 +118,26 @@ export const PersonasTable: React.FC = () => {
       persona.primer_apellido.toLowerCase().includes(busqueda) ||
       persona.numero_id.includes(busqueda)
 
-    // Filtro por género
-    const coincideGenero = !filtros.genero || persona.genero === filtros.genero
-
     // Filtro por estado civil
     const coincideEstadoCivil =
       !filtros.estadoCivil || persona.estado_civil === filtros.estadoCivil
 
     // Filtro por bautizado
     const coincideBautizado =
-      !filtros.bautizado ||
       (filtros.bautizado === 'si' && persona.bautizado) ||
       (filtros.bautizado === 'no' && !persona.bautizado)
 
+    // Filtro por sede
+    const nombreSede = Array.isArray(persona.sede)
+      ? (persona.sede[0] as any)?.nombre_sede
+      : persona.sede?.nombre_sede
+    const coincideSede = !filtros.sede || nombreSede === filtros.sede
+
     return (
-      coincideBusqueda && coincideGenero && coincideEstadoCivil && coincideBautizado
+      coincideBusqueda &&
+      coincideEstadoCivil &&
+      coincideBautizado &&
+      coincideSede
     )
   })
 
@@ -154,9 +173,9 @@ export const PersonasTable: React.FC = () => {
   const limpiarFiltros = () => {
     setFiltros({
       busqueda: '',
-      genero: '',
       estadoCivil: '',
       bautizado: '',
+      sede: '',
     })
     setCurrentPage(1)
   }
@@ -225,17 +244,20 @@ export const PersonasTable: React.FC = () => {
             </div>
           </div>
 
-          {/* Género */}
+          {/* Sede */}
           <select
-            value={filtros.genero}
+            value={filtros.sede}
             onChange={(e) =>
-              setFiltros((prev) => ({ ...prev, genero: e.target.value }))
+              setFiltros((prev) => ({ ...prev, sede: e.target.value }))
             }
             className="px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           >
-            <option value="">Todos los géneros</option>
-            <option value="Masculino">Masculino</option>
-            <option value="Femenino">Femenino</option>
+            <option value="">Todas las sedes</option>
+            {sedes.map((sede) => (
+              <option key={sede.id} value={sede.nombre_sede}>
+                {sede.nombre_sede}
+              </option>
+            ))}
           </select>
 
           {/* Bautizado */}
@@ -253,15 +275,18 @@ export const PersonasTable: React.FC = () => {
         </div>
 
         {/* Botón limpiar filtros */}
-        {(filtros.busqueda || filtros.genero || filtros.bautizado) && (
-          <button
-            onClick={limpiarFiltros}
-            className="mt-3 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-          >
-            <X className="w-4 h-4" />
-            Limpiar filtros
-          </button>
-        )}
+        {(filtros.busqueda ||
+          filtros.estadoCivil ||
+          filtros.bautizado ||
+          filtros.sede) && (
+            <button
+              onClick={limpiarFiltros}
+              className="mt-3 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+            >
+              <X className="w-4 h-4" />
+              Limpiar filtros
+            </button>
+          )}
       </div>
 
       {/* TABLA */}

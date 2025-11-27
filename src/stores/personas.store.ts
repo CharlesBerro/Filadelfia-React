@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { Persona } from '@/types'
 
 interface PersonasStore {
@@ -17,57 +18,64 @@ interface PersonasStore {
   fetchPersonas: () => Promise<void>
 }
 
-export const usePersonasStore = create<PersonasStore>((set) => ({
-  personas: [],
-  loading: false,
-  error: null,
-  lastUpdated: null,
-
-  setPersonas: (personas) =>
-    set({
-      personas,
-      loading: false,
-      lastUpdated: Date.now(),
-    }),
-
-  setLoading: (loading) => set({ loading }),
-
-  setError: (error) => set({ error }),
-
-  addPersona: (persona) =>
-    set((state) => ({
-      personas: [...state.personas, persona],
-    })),
-
-  removePersona: (id) =>
-    set((state) => ({
-      personas: state.personas.filter((p) => p.id !== id),
-    })),
-
-  updatePersona: (id, updated) =>
-    set((state) => ({
-      personas: state.personas.map((p) =>
-        p.id === id ? { ...p, ...updated } : p
-      ),
-    })),
-
-  reset: () =>
-    set({
+export const usePersonasStore = create<PersonasStore>()(
+  persist(
+    (set) => ({
       personas: [],
       loading: false,
       error: null,
       lastUpdated: null,
-    }),
 
-  fetchPersonas: async () => {
-    set({ loading: true, error: null })
-    try {
-      const { PersonasService } = await import('@/services/personas.service')
-      const data = await PersonasService.obtenerMias()
-      set({ personas: data, loading: false, lastUpdated: Date.now() })
-    } catch (error: any) {
-      console.error('Error fetching personas:', error)
-      set({ error: error.message || 'Error al cargar personas', loading: false })
+      setPersonas: (personas) =>
+        set({
+          personas,
+          loading: false,
+          lastUpdated: Date.now(),
+        }),
+
+      setLoading: (loading) => set({ loading }),
+
+      setError: (error) => set({ error }),
+
+      addPersona: (persona) =>
+        set((state) => ({
+          personas: [...state.personas, persona],
+        })),
+
+      removePersona: (id) =>
+        set((state) => ({
+          personas: state.personas.filter((p) => p.id !== id),
+        })),
+
+      updatePersona: (id, updated) =>
+        set((state) => ({
+          personas: state.personas.map((p) =>
+            p.id === id ? { ...p, ...updated } : p
+          ),
+        })),
+
+      reset: () =>
+        set({
+          personas: [],
+          loading: false,
+          error: null,
+          lastUpdated: null,
+        }),
+
+      fetchPersonas: async () => {
+        set({ loading: true, error: null })
+        try {
+          const { PersonasService } = await import('@/services/personas.service')
+          const data = await PersonasService.obtenerMias()
+          set({ personas: data, loading: false, lastUpdated: Date.now() })
+        } catch (error: any) {
+          console.error('Error fetching personas:', error)
+          set({ error: error.message || 'Error al cargar personas', loading: false })
+        }
+      },
+    }),
+    {
+      name: 'personas-storage',
     }
-  },
-}))
+  )
+)
