@@ -124,6 +124,7 @@ export const PersonasTable: React.FC = () => {
 
     // Filtro por bautizado
     const coincideBautizado =
+      !filtros.bautizado ||
       (filtros.bautizado === 'si' && persona.bautizado) ||
       (filtros.bautizado === 'no' && !persona.bautizado)
 
