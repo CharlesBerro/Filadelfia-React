@@ -4,6 +4,18 @@ import { useAuthStore } from '@/stores/auth.store'
 
 export class PersonasService {
   /**
+   * Helper para formatear texto a Title Case (ej: "juan perez" -> "Juan Perez")
+   */
+  private static formatToTitleCase(text: string | null | undefined): string {
+    if (!text) return ''
+    return text
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }
+
+  /**
    * Obtener personas visibles para el usuario autenticado.
    * - Admin: ve TODAS las personas
    * - Otros roles: solo sus propias personas (user_id = auth.uid())
@@ -174,8 +186,18 @@ export class PersonasService {
         throw new Error('No se pudo determinar la sede del usuario autenticado')
       }
 
+      // Formatear nombres y apellidos a Title Case
+      const nombresFormateados = this.formatToTitleCase(restoPersona.nombres)
+      const primerApellidoFormateado = this.formatToTitleCase(restoPersona.primer_apellido)
+      const segundoApellidoFormateado = restoPersona.segundo_apellido
+        ? this.formatToTitleCase(restoPersona.segundo_apellido)
+        : null
+
       const datosCompletos = {
         ...restoPersona,
+        nombres: nombresFormateados,
+        primer_apellido: primerApellidoFormateado,
+        segundo_apellido: segundoApellidoFormateado,
         user_id: user.id,
         sede_id: authUser.sede_id,
       }
@@ -208,9 +230,22 @@ export class PersonasService {
    */
   static async actualizar(id: string, updates: Partial<Persona>) {
     try {
+      // Formatear nombres y apellidos si vienen en los updates
+      const updatesFormateados = { ...updates }
+
+      if (updates.nombres) {
+        updatesFormateados.nombres = this.formatToTitleCase(updates.nombres)
+      }
+      if (updates.primer_apellido) {
+        updatesFormateados.primer_apellido = this.formatToTitleCase(updates.primer_apellido)
+      }
+      if (updates.segundo_apellido) {
+        updatesFormateados.segundo_apellido = this.formatToTitleCase(updates.segundo_apellido)
+      }
+
       const { data, error } = await supabase
         .from('persona')
-        .update(updates)
+        .update(updatesFormateados)
         .eq('id', id)
         .select()
 
@@ -233,6 +268,7 @@ export class PersonasService {
         .from('persona')
         .delete()
         .eq('id', id)
+        .select()
 
       if (error) throw error
       return true

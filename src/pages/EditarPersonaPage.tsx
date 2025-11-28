@@ -112,23 +112,26 @@ export const EditarPersonaPage: React.FC = () => {
         ...updates
       } = formData as Persona
 
-      const personaActualizada = await PersonasService.actualizar(id, updates)
+      // Actualizar datos básicos de la persona
+      await PersonasService.actualizar(id, updates)
 
       // Siempre actualizar relaciones many-to-many (aunque los arreglos estén vacíos)
       // para permitir quitar todos los ministerios/escalas.
+      // Usamos el ID original (parámetro) en lugar de personaActualizada.id
+      // para evitar errores si el update no retorna datos
       await MinisteriosService.asignarAPersona(
-        personaActualizada.id,
+        id,
         ministeriosSeleccionados
       )
 
       await EscalasService.asignarAPersona(
-        personaActualizada.id,
+        id,
         escalasSeleccionadas
       )
 
       setSaveSuccess(true)
       setTimeout(() => {
-        navigate(`/personas/${personaActualizada.id}`)
+        navigate(`/personas/${id}`)
       }, 1500)
     } catch (err: any) {
       console.error('Error actualizando persona:', err)

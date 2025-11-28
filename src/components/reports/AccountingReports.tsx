@@ -24,7 +24,6 @@ export const AccountingReports: React.FC<AccountingReportsProps> = ({ onBack }) 
         try {
             setIsLoading(true)
             // Obtenemos todas las transacciones activas para generar reportes precisos
-            // Independiente de los filtros de la página de transacciones
             const data = await TransaccionesService.obtenerTodas()
             setTransacciones(data)
         } catch (error) {
@@ -71,16 +70,47 @@ export const AccountingReports: React.FC<AccountingReportsProps> = ({ onBack }) 
     const chartData = useMemo(() => {
         // Group by month for CashFlow
         const monthlyData = filteredTransactions.reduce((acc, t) => {
-            const monthKey = format(parseISO(t.fecha), 'MMM yyyy', { locale: es })
-            if (!acc[monthKey]) {
-                acc[monthKey] = { date: monthKey, ingresos: 0, egresos: 0 }
+            const dateObj = parseISO(t.fecha)
+            const sortKey = format(dateObj, 'yyyy-MM') // Clave para ordenar: 2025-01
+
+            if (!acc[sortKey]) {
+                acc[sortKey] = {
+                    dateObj, // Guardamos fecha real
+                    ingresos: 0,
+                    egresos: 0
+                }
             }
-            if (t.tipo === 'ingreso') acc[monthKey].ingresos += t.monto
-            else acc[monthKey].egresos += t.monto
+            if (t.tipo === 'ingreso') acc[sortKey].ingresos += t.monto
+            else acc[sortKey].egresos += t.monto
             return acc
         }, {} as Record<string, any>)
 
-        const cashFlowData = Object.values(monthlyData)
+        // Generar últimos 6 meses para rellenar huecos (Zero-filling)
+        const filledCashFlowData = []
+        const today = new Date()
+
+        for (let i = 5; i >= 0; i--) {
+            // Calcular el mes correspondiente (hacia atrás desde hoy)
+            const d = new Date(today.getFullYear(), today.getMonth() - i, 1)
+            const sortKey = format(d, 'yyyy-MM')
+            const displayDate = format(d, 'MMM yyyy', { locale: es })
+
+            if (monthlyData[sortKey]) {
+                filledCashFlowData.push({
+                    name: displayDate,
+                    ingresos: monthlyData[sortKey].ingresos,
+                    egresos: monthlyData[sortKey].egresos
+                })
+            } else {
+                filledCashFlowData.push({
+                    name: displayDate,
+                    ingresos: 0,
+                    egresos: 0
+                })
+            }
+        }
+
+        const cashFlowData = filledCashFlowData
 
         // Group by category for IncomeExpense
         const categoryData = filteredTransactions.reduce((acc, t) => {
@@ -241,4 +271,3 @@ export const AccountingReports: React.FC<AccountingReportsProps> = ({ onBack }) 
         </div>
     )
 }
-

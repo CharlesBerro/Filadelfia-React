@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react'
-import { ArrowLeft, Users, Heart, UserCheck, Baby, TrendingUp, Building2 } from 'lucide-react'
+import { ArrowLeft, Users, Heart, UserCheck, Baby, TrendingUp, Building2, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { usePersonasStore } from '@/stores/personas.store'
 import { SedesService } from '@/services/sedes.service'
@@ -25,6 +25,7 @@ interface PeopleReportsProps {
 export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
     const { personas } = usePersonasStore()
     const [sedes, setSedes] = useState<Sede[]>([])
+    const [selectedSede, setSelectedSede] = useState<string>('all')
 
     useEffect(() => {
         const cargarSedes = async () => {
@@ -38,20 +39,38 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
         cargarSedes()
     }, [])
 
+    // Filtrar personas basado en la sede seleccionada
+    const filteredPersonas = useMemo(() => {
+        console.log('🔄 Filtrando personas. Sede seleccionada:', selectedSede)
+        console.log('📊 Total personas antes del filtro:', personas.length)
+
+        if (selectedSede === 'all') return personas
+
+        const filtradas = personas.filter(p => {
+            // Convertir a string y trim para evitar problemas de espacios o tipos
+            const personSedeId = String(p.sede_id || '').trim()
+            const filterSedeId = String(selectedSede).trim()
+            return personSedeId === filterSedeId
+        })
+
+        console.log('✅ Personas después del filtro:', filtradas.length)
+        return filtradas
+    }, [personas, selectedSede])
+
     const stats = useMemo(() => {
-        const total = personas.length
-        const bautizados = personas.filter(p => p.bautizado).length
-        const hombres = personas.filter(p => p.genero?.toLowerCase() === 'masculino' || p.genero === 'M').length
-        const mujeres = personas.filter(p => p.genero?.toLowerCase() === 'femenino' || p.genero === 'F').length
+        const total = filteredPersonas.length
+        const bautizados = filteredPersonas.filter(p => p.bautizado).length
+        const hombres = filteredPersonas.filter(p => p.genero?.toLowerCase() === 'masculino' || p.genero === 'M').length
+        const mujeres = filteredPersonas.filter(p => p.genero?.toLowerCase() === 'femenino' || p.genero === 'F').length
 
         // Marital Status
-        const civilStatus = personas.reduce((acc, p) => {
+        const civilStatus = filteredPersonas.reduce((acc, p) => {
             const status = p.estado_civil || 'No especificado'
             acc[status] = (acc[status] || 0) + 1
             return acc
         }, {} as Record<string, number>)
 
-        // Sede Distribution
+        // Sede Distribution (Siempre calculamos sobre TODAS las personas para el gráfico comparativo)
         const sedeDistribution = personas.reduce((acc, p) => {
             const sedeId = p.sede_id
             if (sedeId) {
@@ -61,7 +80,7 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
         }, {} as Record<string, number>)
 
         return { total, bautizados, hombres, mujeres, civilStatus, sedeDistribution }
-    }, [personas])
+    }, [filteredPersonas, personas])
 
     const genderData = [
         { name: 'Hombres', value: stats.hombres },
@@ -77,7 +96,8 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
             const sede = sedes.find(s => s.id === sedeId)
             return {
                 name: sede?.nombre_sede || 'Sin sede',
-                value
+                value,
+                id: sedeId
             }
         })
         .sort((a, b) => b.value - a.value)
@@ -98,14 +118,34 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                             <Users className="w-7 h-7 text-blue-600" />
-                            Reportes de Personas
+                            Reportes de Personas v2.0
                         </h2>
                         <p className="text-gray-500 text-sm">Análisis demográfico y de crecimiento</p>
                     </div>
                 </div>
-                <Button variant="secondary" onClick={onBack}>
-                    Volver a Reportes
-                </Button>
+
+                <div className="flex items-center gap-4">
+                    {/* Sede Filter */}
+                    <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2">
+                        <Filter className="w-4 h-4 text-gray-500" />
+                        <select
+                            value={selectedSede}
+                            onChange={(e) => setSelectedSede(e.target.value)}
+                            className="bg-transparent border-none text-sm text-gray-700 focus:ring-0 cursor-pointer outline-none"
+                        >
+                            <option value="all">Todas las Sedes</option>
+                            {sedes.map(sede => (
+                                <option key={sede.id} value={sede.id}>
+                                    {sede.nombre_sede}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <Button variant="secondary" onClick={onBack}>
+                        Volver a Reportes
+                    </Button>
+                </div>
             </div>
 
             {/* KPI Cards */}
@@ -122,7 +162,11 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
                         <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
                         <div className="mt-2 flex items-center text-xs text-green-600 font-medium">
                             <TrendingUp className="w-3 h-3 mr-1" />
-                            <span>Activos</span>
+                            <span>
+                                {selectedSede !== 'all'
+                                    ? `En ${sedes.find(s => s.id === selectedSede)?.nombre_sede || 'sede seleccionada'}`
+                                    : 'En todas las sedes'}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -257,7 +301,7 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div className="flex items-center gap-2 mb-6">
                         <Building2 className="w-5 h-5 text-green-600" />
-                        <h3 className="text-lg font-bold text-gray-800">Personas por Sede</h3>
+                        <h3 className="text-lg font-bold text-gray-800">Personas por Sede (Global)</h3>
                     </div>
                     <div className="h-[300px] w-full" style={{ minHeight: '300px' }}>
                         <ResponsiveContainer width="100%" height="100%">
@@ -282,8 +326,11 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
                                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                                 />
                                 <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={40}>
-                                    {sedeData.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    {sedeData.map((entry, index) => (
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={String(selectedSede) === 'all' || String(selectedSede) === String(entry.id) ? COLORS[index % COLORS.length] : '#e5e7eb'}
+                                        />
                                     ))}
                                 </Bar>
                             </BarChart>

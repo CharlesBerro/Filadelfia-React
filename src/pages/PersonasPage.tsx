@@ -1,5 +1,5 @@
 // src/pages/PersonasPage.tsx
-import React from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
 import { PersonasTable } from '@/components/personas/PersonasTable'
@@ -7,10 +7,76 @@ import { PersonasStats } from '@/components/personas/PersonasStats'
 import { usePersonasStore } from '@/stores/personas.store'
 import { Button } from '@/components/ui/Button'
 import { Users, UserPlus } from 'lucide-react'
+import { SedesService } from '@/services/sedes.service'
+import type { Sede } from '@/types'
 
 export const PersonasPage: React.FC = () => {
   const navigate = useNavigate()
   const { personas } = usePersonasStore()
+  const [sedes, setSedes] = useState<Sede[]>([])
+
+  // Estado de Filtros Elevado
+  const [filtros, setFiltros] = useState({
+    busqueda: '',
+    estadoCivil: '',
+    bautizado: '',
+    sede: '',
+  })
+
+  // Cargar sedes al montar
+  useEffect(() => {
+    const cargarSedes = async () => {
+      try {
+        const data = await SedesService.obtenerTodas()
+        setSedes(data)
+      } catch (error) {
+        console.error('Error cargando sedes:', error)
+      }
+    }
+    cargarSedes()
+  }, [])
+
+  // Lógica de Filtrado Centralizada
+  const filteredPersonas = useMemo(() => {
+    return personas.filter((persona) => {
+      // Filtro por búsqueda (nombre, apellido, cédula)
+      if (filtros.busqueda) {
+        const searchLower = filtros.busqueda.toLowerCase()
+        const nombreCompleto =
+          `${persona.nombres || ''} ${persona.primer_apellido || ''} ${persona.segundo_apellido || ''}`.toLowerCase()
+        const cedula = persona.numero_id?.toLowerCase() || ''
+
+        if (!nombreCompleto.includes(searchLower) && !cedula.includes(searchLower)) {
+          return false
+        }
+      }
+
+      // Filtro por Estado Civil
+      if (filtros.estadoCivil && persona.estado_civil !== filtros.estadoCivil) {
+        return false
+      }
+
+      // Filtro por Bautizado
+      if (filtros.bautizado) {
+        const esBautizado = filtros.bautizado === 'si'
+        if (persona.bautizado !== esBautizado) {
+          return false
+        }
+      }
+
+      // Filtro por Sede
+      if (filtros.sede) {
+        // Comparación estricta de strings
+        const personaSedeId = String(persona.sede_id || '').trim()
+        const filtroSedeId = String(filtros.sede).trim()
+        if (personaSedeId !== filtroSedeId) {
+          return false
+        }
+      }
+
+      return true
+    })
+  }, [personas, filtros])
 
   return (
     <Layout>
@@ -39,11 +105,16 @@ export const PersonasPage: React.FC = () => {
             </Button>
           </div>
 
-          {/* Estadísticas */}
-          <PersonasStats personas={personas} />
+          {/* Estadísticas con datos filtrados */}
+          <PersonasStats personas={filteredPersonas} />
 
-          {/* Tabla */}
-          <PersonasTable />
+          {/* Tabla con datos filtrados y control de filtros */}
+          <PersonasTable
+            personas={filteredPersonas}
+            filtros={filtros}
+            onFilterChange={setFiltros}
+            sedes={sedes}
+          />
         </div>
       </div>
     </Layout>
