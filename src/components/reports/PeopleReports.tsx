@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react'
-import { ArrowLeft, Users, Heart, UserCheck, Baby, TrendingUp } from 'lucide-react'
+import React, { useMemo, useState, useEffect } from 'react'
+import { ArrowLeft, Users, Heart, UserCheck, Baby, TrendingUp, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { usePersonasStore } from '@/stores/personas.store'
+import { SedesService } from '@/services/sedes.service'
+import type { Sede } from '@/types'
 import {
     PieChart,
     Pie,
@@ -22,6 +24,19 @@ interface PeopleReportsProps {
 
 export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
     const { personas } = usePersonasStore()
+    const [sedes, setSedes] = useState<Sede[]>([])
+
+    useEffect(() => {
+        const cargarSedes = async () => {
+            try {
+                const data = await SedesService.obtenerTodas()
+                setSedes(data)
+            } catch (error) {
+                console.error('Error cargando sedes:', error)
+            }
+        }
+        cargarSedes()
+    }, [])
 
     const stats = useMemo(() => {
         const total = personas.length
@@ -36,10 +51,16 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
             return acc
         }, {} as Record<string, number>)
 
-        // Age Groups (Approximate based on birthdate if available, otherwise mock or skip)
-        // For now, let's stick to reliable data we have.
+        // Sede Distribution
+        const sedeDistribution = personas.reduce((acc, p) => {
+            const sedeId = p.sede_id
+            if (sedeId) {
+                acc[sedeId] = (acc[sedeId] || 0) + 1
+            }
+            return acc
+        }, {} as Record<string, number>)
 
-        return { total, bautizados, hombres, mujeres, civilStatus }
+        return { total, bautizados, hombres, mujeres, civilStatus, sedeDistribution }
     }, [personas])
 
     const genderData = [
@@ -51,7 +72,17 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
 
-    const COLORS = ['#3b82f6', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#6366f1']
+    const sedeData = Object.entries(stats.sedeDistribution)
+        .map(([sedeId, value]) => {
+            const sede = sedes.find(s => s.id === sedeId)
+            return {
+                name: sede?.nombre_sede || 'Sin sede',
+                value
+            }
+        })
+        .sort((a, b) => b.value - a.value)
+
+    const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
 
     return (
         <div className="space-y-8">
@@ -188,7 +219,7 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
                     </div>
                 </div>
 
-                {/* Civil Status - Vertical Bar Chart */}
+                {/* Civil Status - Horizontal Bar Chart */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h3 className="text-lg font-bold text-gray-800 mb-6">Estado Civil</h3>
                     <div className="h-[300px] w-full" style={{ minHeight: '300px' }}>
@@ -214,6 +245,44 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
                                 />
                                 <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={24}>
                                     {civilStatusData.map((_, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* Sede Distribution - Vertical Bar Chart */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-2 mb-6">
+                        <Building2 className="w-5 h-5 text-green-600" />
+                        <h3 className="text-lg font-bold text-gray-800">Personas por Sede</h3>
+                    </div>
+                    <div className="h-[300px] w-full" style={{ minHeight: '300px' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                                data={sedeData}
+                                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                <XAxis
+                                    dataKey="name"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#4b5563', fontSize: 12, fontWeight: 500 }}
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: '#f9fafb' }}
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                />
+                                <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={40}>
+                                    {sedeData.map((_, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Bar>
