@@ -2,14 +2,15 @@ import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+
 import { Modal } from '@/components/ui/Modal'
 import { PersonasService } from '@/services/personas.service'
 import { MinisteriosService } from '@/services/ministerios.service'
 import { EscalasService } from '@/services/escalas_services'
+import { SedesService } from '@/services/sedes.service'
 import { usePersonasStore } from '@/stores/personas.store'
-import type { Persona, Ministerio, EscalaCrecimiento } from '@/types'
-import { UserCircle2, AlertTriangle, ChevronLeft, ChevronRight, Eye, Edit, Trash2 } from 'lucide-react'
+import type { Persona, Ministerio, EscalaCrecimiento, Sede } from '@/types'
+import { UserCircle2, AlertTriangle, ChevronLeft, ChevronRight, Eye, Edit, Trash2, CheckCircle2 } from 'lucide-react'
 
 export const PersonaDetallePage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -19,9 +20,11 @@ export const PersonaDetallePage: React.FC = () => {
   const [persona, setPersona] = useState<Persona | null>(null)
   const [ministerios, setMinisterios] = useState<Ministerio[]>([])
   const [escalas, setEscalas] = useState<EscalaCrecimiento[]>([])
+  const [sedes, setSedes] = useState<Sede[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [deleteSuccess, setDeleteSuccess] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   // Navigation state
@@ -35,14 +38,16 @@ export const PersonaDetallePage: React.FC = () => {
       setLoading(true)
       setError(null)
       try {
-        const [p, mins, escs] = await Promise.all([
+        const [p, mins, escs, sedesData] = await Promise.all([
           PersonasService.obtenerPorId(id),
           MinisteriosService.obtenerPorPersona(id),
           EscalasService.obtenerPorPersona(id),
+          SedesService.obtenerTodas(),
         ])
         setPersona(p)
         setMinisterios(mins)
         setEscalas(escs)
+        setSedes(sedesData)
       } catch (err: any) {
         console.error('Error cargando persona:', err)
         setError(err.message || 'Error cargando persona')
@@ -58,7 +63,11 @@ export const PersonaDetallePage: React.FC = () => {
     try {
       setDeleting(true)
       await PersonasService.eliminar(persona.id)
-      navigate('/personas')
+      setDeleting(false)
+      setDeleteSuccess(true)
+      setTimeout(() => {
+        navigate('/personas')
+      }, 1500)
     } catch (err: any) {
       console.error('Error eliminando persona:', err)
       alert(err.message || 'Error al eliminar persona')
@@ -78,7 +87,10 @@ export const PersonaDetallePage: React.FC = () => {
   if (loading) {
     return (
       <Layout>
-        <LoadingSpinner fullScreen text="Cargando persona..." />
+        <div className="fixed inset-0 bg-white bg-opacity-95 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
+          <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+          <p className="text-lg font-semibold text-gray-800">Cargando persona...</p>
+        </div>
       </Layout>
     )
   }
@@ -164,9 +176,7 @@ export const PersonaDetallePage: React.FC = () => {
                 <div>
                   <p className="font-semibold text-gray-900">Sede:</p>
                   <p className="text-gray-700 ml-2">
-                    {(Array.isArray(persona.sede)
-                      ? (persona.sede[0] as any)?.nombre_sede
-                      : persona.sede?.nombre_sede) || 'No especificado'}
+                    {sedes.find(s => s.id === persona.sede_id)?.nombre_sede || 'No especificado'}
                   </p>
                 </div>
 
@@ -345,8 +355,21 @@ export const PersonaDetallePage: React.FC = () => {
           </div>
         </Modal>
 
-        {deleting && (
-          <LoadingSpinner fullScreen text="Eliminando persona..." />
+        {(deleting || deleteSuccess) && (
+          <div className="fixed inset-0 bg-white bg-opacity-95 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
+            {deleting && (
+              <>
+                <div className="w-16 h-16 border-4 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
+                <p className="text-lg font-semibold text-gray-800">Eliminando persona...</p>
+              </>
+            )}
+            {deleteSuccess && !deleting && (
+              <>
+                <CheckCircle2 className="w-16 h-16 text-green-600" />
+                <p className="text-lg font-semibold text-gray-800">Eliminado correctamente</p>
+              </>
+            )}
+          </div>
         )}
       </div>
     </Layout>

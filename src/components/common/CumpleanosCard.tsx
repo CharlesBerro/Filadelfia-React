@@ -25,20 +25,9 @@ export const CumpleanosCard: React.FC = () => {
             : persona.fecha_nacimiento
           const [anio, mes, dia] = fechaStr.split('-').map(Number)
 
-          const cumpleanosEsteAno = new Date(
-            hoy.getFullYear(),
-            mes - 1,
-            dia
-          )
-          cumpleanosEsteAno.setHours(0, 0, 0, 0)
-
-          // Si ya pasó hoy, es el próximo año
-          if (cumpleanosEsteAno < hoy) {
-            cumpleanosEsteAno.setFullYear(hoy.getFullYear() + 1)
-          }
-
-          // Excluir si es HOY (solo queremos próximos)
-          return cumpleanosEsteAno.getTime() !== hoy.getTime()
+          // Excluir si es HOY (usando comparación estricta de día/mes)
+          const esHoy = dia === hoy.getDate() && (mes - 1) === hoy.getMonth()
+          return !esHoy
         })
 
         setProximosCumpleanios(soloProximos.slice(0, 3)) // Top 3 próximos
@@ -53,10 +42,25 @@ export const CumpleanosCard: React.FC = () => {
 
   const calcularDiasRestantes = (fecha: string): number => {
     const hoy = new Date()
-    hoy.setHours(0, 0, 0, 0)
-
     const fechaStr = fecha.includes('T') ? fecha.split('T')[0] : fecha
     const [anio, mes, dia] = fechaStr.split('-').map(Number)
+
+    console.log('🔍 Calculando días restantes:', {
+      fecha_original: fecha,
+      fecha_parseada: fechaStr,
+      dia_cumple: dia,
+      mes_cumple: mes,
+      hoy_dia: hoy.getDate(),
+      hoy_mes: hoy.getMonth() + 1,
+      comparacion_dia: dia === hoy.getDate(),
+      comparacion_mes: (mes - 1) === hoy.getMonth()
+    })
+
+    // Si es el mismo día y mes, es HOY (0 días)
+    if (dia === hoy.getDate() && (mes - 1) === hoy.getMonth()) {
+      console.log('✅ Es HOY! Retornando 0')
+      return 0
+    }
 
     const cumpleanosEsteAno = new Date(
       hoy.getFullYear(),
@@ -64,13 +68,16 @@ export const CumpleanosCard: React.FC = () => {
       dia
     )
     cumpleanosEsteAno.setHours(0, 0, 0, 0)
+    hoy.setHours(0, 0, 0, 0)
 
     if (cumpleanosEsteAno < hoy) {
       cumpleanosEsteAno.setFullYear(hoy.getFullYear() + 1)
     }
 
     const diferencia = cumpleanosEsteAno.getTime() - hoy.getTime()
-    return Math.ceil(diferencia / (1000 * 60 * 60 * 24))
+    const dias = Math.ceil(diferencia / (1000 * 60 * 60 * 24))
+    console.log('📊 Días calculados:', dias)
+    return dias
   }
 
   if (loading) {
@@ -113,8 +120,8 @@ export const CumpleanosCard: React.FC = () => {
               <div
                 key={persona.id}
                 className={`flex items-center justify-between p-3 rounded-lg border-2 transition ${estaProximo
-                  ? 'bg-green-50 border-green-300'
-                  : 'bg-gray-50 border-gray-200'
+                    ? 'bg-green-50 border-green-300'
+                    : 'bg-gray-50 border-gray-200'
                   }`}
               >
                 <div className="flex-1">
@@ -131,8 +138,8 @@ export const CumpleanosCard: React.FC = () => {
 
                 <div
                   className={`text-right px-3 py-1 rounded-lg font-bold text-sm ${estaProximo
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-200 text-gray-700'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-200 text-gray-700'
                     }`}
                 >
                   {diasRestantes === 0 ? '¡Hoy!' : `${diasRestantes}d`}

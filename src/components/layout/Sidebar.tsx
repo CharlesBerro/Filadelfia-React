@@ -110,25 +110,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static top-0 left-0 h-screen w-64 bg-gradient-to-b from-green-50 to-white shadow-lg lg:shadow-none lg:border-r lg:border-green-200 transform transition-transform duration-300 z-40 overflow-y-auto ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed lg:static top-0 left-0 h-screen w-64 bg-gradient-to-br from-green-600 via-green-600 to-green-600 shadow-lg lg:shadow-none lg:border-r lg:border-green-300 transform transition-transform duration-300 z-40 overflow-y-auto ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}
       >
         {/* Close button mobile */}
         <button
           onClick={onClose}
-          className="lg:hidden absolute top-4 right-4 p-2 hover:bg-green-100 rounded-lg transition"
+          className="lg:hidden absolute top-4 right-4 p-2 hover:bg-white/20 rounded-lg transition"
         >
-          <X className="w-6 h-6 text-gray-600" />
+          <X className="w-6 h-6 text-white" />
         </button>
 
         {/* Contenido */}
         <div className="p-6 space-y-6 pt-16 lg:pt-6">
           {/* Header */}
           <div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 text-transparent bg-clip-text">
+            <h2 className="text-2xl font-bold text-white drop-shadow-lg">
               FiladelFia
             </h2>
-            <p className="text-xs text-gray-500 mt-1">{user?.full_name}</p>
+            <p className="text-xs text-white/80 mt-1">{user?.full_name}</p>
           </div>
 
           {/* Menú */}
@@ -143,8 +143,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   key={item.path}
                   onClick={() => handleNavigation(item.path)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
-                    ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg'
-                    : 'text-gray-700 hover:bg-green-50'
+                    ? 'bg-white text-green-700 shadow-lg font-semibold'
+                    : 'text-white hover:bg-white/20 shine-effect'
                     }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -165,8 +165,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <button
                     onClick={() => toggleModule(module.label)}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 ${hasActiveItem && !isExpanded
-                      ? 'bg-green-100 text-green-700'
-                      : 'text-gray-700 hover:bg-green-50'
+                      ? 'bg-white/30 text-white'
+                      : 'text-white hover:bg-white/20 shine-effect'
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -195,8 +195,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                             key={item.path}
                             onClick={() => handleNavigation(item.path)}
                             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-sm ${active
-                              ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-md'
-                              : 'text-gray-600 hover:bg-green-50 hover:text-gray-900'
+                              ? 'bg-white text-green-700 shadow-md font-semibold'
+                              : 'text-white hover:bg-white/20 shine-effect'
                               }`}
                           >
                             <ItemIcon className="w-4 h-4" />
@@ -213,7 +213,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             {/* Items de admin */}
             {user?.role === 'admin' && (
               <>
-                <div className="border-t border-green-200 my-4" />
+                <div className="border-t border-white/30 my-4" />
                 {adminItems.map((item) => {
                   const Icon = item.icon
                   const active = isActive(item.path)
@@ -223,8 +223,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       key={item.path}
                       onClick={() => handleNavigation(item.path)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${active
-                        ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg'
-                        : 'text-gray-700 hover:bg-green-50'
+                        ? 'bg-white text-green-700 shadow-lg font-semibold'
+                        : 'text-white hover:bg-white/20 shine-effect'
                         }`}
                     >
                       <Icon className="w-5 h-5" />

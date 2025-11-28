@@ -25,10 +25,7 @@ export class PersonasService {
 
       let query = supabase
         .from('persona')
-        .select(`
-          *,
-          sede:sede_id(nombre_sede)
-        `)
+        .select('*')
 
       if (!esAdmin) {
         // Usuario normal: solo sus propios registros
@@ -65,7 +62,7 @@ export class PersonasService {
             ? p.fecha_nacimiento.split('T')[0]
             : p.fecha_nacimiento
 
-          const [anio, mes, dia] = fechaStr.split('-').map(Number)
+          const [, mes, dia] = fechaStr.split('-').map(Number)
 
           const cumpleanosEsteAno = new Date(
             hoy.getFullYear(),
@@ -85,26 +82,32 @@ export class PersonasService {
           const fechaStrA = a.fecha_nacimiento!.includes('T')
             ? a.fecha_nacimiento!.split('T')[0]
             : a.fecha_nacimiento!
-          const [anioA, mesA, diaA] = fechaStrA.split('-').map(Number)
+          const [, mesA, diaA] = fechaStrA.split('-').map(Number)
 
           const fechaStrB = b.fecha_nacimiento!.includes('T')
             ? b.fecha_nacimiento!.split('T')[0]
             : b.fecha_nacimiento!
-          const [anioB, mesB, diaB] = fechaStrB.split('-').map(Number)
+          const [, mesB, diaB] = fechaStrB.split('-').map(Number)
 
           const cumA = new Date(
             new Date().getFullYear(),
             mesA - 1,
             diaA
           )
+          cumA.setHours(0, 0, 0, 0)
+
           const cumB = new Date(
             new Date().getFullYear(),
             mesB - 1,
             diaB
           )
+          cumB.setHours(0, 0, 0, 0)
 
-          if (cumA < new Date()) cumA.setFullYear(cumA.getFullYear() + 1)
-          if (cumB < new Date()) cumB.setFullYear(cumB.getFullYear() + 1)
+          const hoySort = new Date()
+          hoySort.setHours(0, 0, 0, 0)
+
+          if (cumA < hoySort) cumA.setFullYear(cumA.getFullYear() + 1)
+          if (cumB < hoySort) cumB.setFullYear(cumB.getFullYear() + 1)
 
           return cumA.getTime() - cumB.getTime()
         })
@@ -121,10 +124,7 @@ export class PersonasService {
     try {
       const { data, error } = await supabase
         .from('persona')
-        .select(`
-          *,
-          sede:sede_id(nombre_sede)
-        `)
+        .select('*')
         .eq('id', id)
         .single()
 
@@ -166,9 +166,6 @@ export class PersonasService {
       }
 
       // 3. Preparar datos
-      // La tabla 'persona' NO tiene las columnas de relación many-to-many
-      // como 'ministerio' o 'escala_crecimiento'. Esas relaciones se guardan
-      // en las tablas persona_ministerios y persona_escala.
       const { ministerio, escala_crecimiento, ...restoPersona } = personaData as any
 
       // Obtener sede_id desde el usuario autenticado almacenado en el store
@@ -206,7 +203,6 @@ export class PersonasService {
     }
   }
 
-
   /**
    * Actualizar persona
    */
@@ -217,10 +213,11 @@ export class PersonasService {
         .update(updates)
         .eq('id', id)
         .select()
-        .single()
 
       if (error) throw error
-      return data as Persona
+
+      // Retornar el primer elemento del array
+      return (data && data.length > 0 ? data[0] : data) as Persona
     } catch (error: any) {
       console.error('Error actualizando persona:', error)
       throw error

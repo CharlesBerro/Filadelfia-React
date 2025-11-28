@@ -129,9 +129,8 @@ export const PersonasTable: React.FC = () => {
       (filtros.bautizado === 'no' && !persona.bautizado)
 
     // Filtro por sede
-    const nombreSede = Array.isArray(persona.sede)
-      ? (persona.sede[0] as any)?.nombre_sede
-      : persona.sede?.nombre_sede
+    const sedePersona = sedes.find(s => s.id === persona.sede_id)
+    const nombreSede = sedePersona?.nombre_sede
     const coincideSede = !filtros.sede || nombreSede === filtros.sede
 
     return (

@@ -23,6 +23,7 @@ body {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -32,6 +33,7 @@ body {
   from {
     transform: translateX(-100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -43,6 +45,48 @@ body {
 
 .slide-in-left {
   animation: slideInLeft 0.3s ease-in-out;
+}
+
+/* Shine Effect - Maximum visibility with white flash */
+@keyframes shine {
+  0% {
+    left: -150%;
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    left: 150%;
+    opacity: 0;
+  }
+}
+
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 1) 50%,
+      transparent 100%);
+  transform: skewX(-15deg);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.shine-effect:hover::after {
+  animation: shine 1.2s ease-out;
 }
 
 ::-webkit-scrollbar {

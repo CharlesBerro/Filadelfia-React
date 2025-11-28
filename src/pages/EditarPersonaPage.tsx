@@ -9,7 +9,7 @@ import { SelectMunicipio } from '@/components/ui/SelectMunicipio'
 import { FotoUploader } from '@/components/ui/FotoUploader'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+
 import type { Persona, Ministerio, EscalaCrecimiento } from '@/types'
 import { ArrowLeft, Save, CheckCircle2 } from 'lucide-react'
 
@@ -141,7 +141,10 @@ export const EditarPersonaPage: React.FC = () => {
   if (loading) {
     return (
       <Layout>
-        <LoadingSpinner fullScreen text="Cargando persona..." />
+        <div className="fixed inset-0 bg-white bg-opacity-95 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
+          <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+          <p className="text-lg font-semibold text-gray-800">Cargando persona...</p>
+        </div>
       </Layout>
     )
   }
@@ -182,16 +185,20 @@ export const EditarPersonaPage: React.FC = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 bg-white rounded-xl shadow-sm p-4">
-            {saving && (
-              <LoadingSpinner
-                fullScreen
-                text={saveSuccess ? 'Actualizado con éxito, redirigiendo...' : 'Guardando cambios...'}
-              />
-            )}
-            {saveSuccess && !saving && (
-              <div className="fixed inset-0 bg-white bg-opacity-90 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-3">
-                <CheckCircle2 className="w-16 h-16 text-green-600" />
-                <p className="text-lg font-semibold text-gray-800">Actualizado con éxito</p>
+            {(saving || saveSuccess) && (
+              <div className="fixed inset-0 bg-white bg-opacity-95 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
+                {saving && (
+                  <>
+                    <div className="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+                    <p className="text-lg font-semibold text-gray-800">Guardando cambios...</p>
+                  </>
+                )}
+                {saveSuccess && !saving && (
+                  <>
+                    <CheckCircle2 className="w-16 h-16 text-green-600" />
+                    <p className="text-lg font-semibold text-gray-800">Actualizado con éxito</p>
+                  </>
+                )}
               </div>
             )}
 
