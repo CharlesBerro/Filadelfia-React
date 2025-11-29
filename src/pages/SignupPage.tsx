@@ -65,7 +65,6 @@ export const SignupPage: React.FC = () => {
       }, 2000)
 
     } catch (error: any) {
-      console.error('Error:', error)
       
       if (error.message.includes('already registered')) {
         setGeneralError('Este email ya está registrado')

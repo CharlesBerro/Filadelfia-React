@@ -49,7 +49,6 @@ export const PersonaDetallePage: React.FC = () => {
         setEscalas(escs)
         setSedes(sedesData)
       } catch (err: any) {
-        console.error('Error cargando persona:', err)
         setError(err.message || 'Error cargando persona')
       } finally {
         setLoading(false)
@@ -69,7 +68,6 @@ export const PersonaDetallePage: React.FC = () => {
         navigate('/personas')
       }, 1500)
     } catch (err: any) {
-      console.error('Error eliminando persona:', err)
       alert(err.message || 'Error al eliminar persona')
       setDeleting(false)
       setShowDeleteModal(false)

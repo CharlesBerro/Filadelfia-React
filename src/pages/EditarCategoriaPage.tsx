@@ -42,7 +42,6 @@ export const EditarCategoriaPage: React.FC = () => {
     setError(null)
 
     try {
-      console.log('🔄 Cargando categoría:', id)
 
       // Obtener todas las categorías y buscar la que necesitamos
       const categorias = await CategoriasService.obtenerTodas()
@@ -53,9 +52,7 @@ export const EditarCategoriaPage: React.FC = () => {
       }
 
       setCategoria(categoriaEncontrada)
-      console.log('✅ Categoría cargada:', categoriaEncontrada)
     } catch (error: any) {
-      console.error('❌ Error cargando categoría:', error)
       setError(error.message || 'Error al cargar la categoría')
     } finally {
       setLoading(false)

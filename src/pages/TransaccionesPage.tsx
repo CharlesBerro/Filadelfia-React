@@ -33,12 +33,9 @@ export const TransaccionesPage: React.FC = () => {
         setError(null)
 
         try {
-            console.log('🔄 Cargando transacciones con filtros:', filters)
             const data = await TransaccionesService.obtenerTodas(filters)
             setTransacciones(data)
-            console.log('✅ Transacciones cargadas:', data.length)
         } catch (error: any) {
-            console.error('❌ Error cargando transacciones:', error)
             setError(error.message || 'Error al cargar transacciones')
         } finally {
             setLoading(false)
@@ -51,7 +48,6 @@ export const TransaccionesPage: React.FC = () => {
             return
         }
 
-        console.log('📊 Exportando', transacciones.length, 'transacciones con filtros:', filters)
 
         // Definir cabeceras
         const headers = ['Fecha', 'Tipo', 'Categoría', 'Descripción', 'Monto', 'Estado', 'Persona', 'Actividad']
@@ -107,7 +103,6 @@ export const TransaccionesPage: React.FC = () => {
             const { pdf } = await import('@react-pdf/renderer')
             const { ReportePDF } = await import('@/components/transacciones/ReportePDF')
 
-            console.log('📄 Generando PDF con', transacciones.length, 'transacciones')
 
             // Crear el documento PDF
             const blob = await pdf(<ReportePDF transacciones={transacciones} />).toBlob()
@@ -122,9 +117,7 @@ export const TransaccionesPage: React.FC = () => {
             document.body.removeChild(link)
             URL.revokeObjectURL(url)
 
-            console.log('✅ PDF generado exitosamente')
         } catch (error) {
-            console.error('❌ Error generando PDF:', error)
             alert('Error al generar PDF: ' + (error instanceof Error ? error.message : 'Error desconocido'))
         }
     }

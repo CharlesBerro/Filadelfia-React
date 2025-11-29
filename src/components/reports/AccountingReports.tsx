@@ -27,7 +27,6 @@ export const AccountingReports: React.FC<AccountingReportsProps> = ({ onBack }) 
             const data = await TransaccionesService.obtenerTodas()
             setTransacciones(data)
         } catch (error) {
-            console.error('Error cargando datos para reportes:', error)
         } finally {
             setIsLoading(false)
         }

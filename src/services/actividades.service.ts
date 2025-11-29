@@ -26,7 +26,6 @@ export class ActividadesService {
      */
     static async obtenerTodas(): Promise<Actividad[]> {
         try {
-            console.log('📡 Service: obtenerTodas actividades')
 
             // 1. Verificar autenticación
             const {
@@ -37,13 +36,11 @@ export class ActividadesService {
                 throw new Error('No autenticado')
             }
 
-            console.log('👤 Usuario:', user.id)
 
             // 2. Obtener rol del usuario desde el store
             const { user: authUser } = useAuthStore.getState()
             const esAdmin = authUser?.rol === 'admin'
 
-            console.log('🔐 Es admin:', esAdmin)
 
             // 3. Construir query según rol
             let query = supabase
@@ -59,15 +56,12 @@ export class ActividadesService {
             const { data, error } = await query
 
             if (error) {
-                console.error('❌ Error de Supabase:', error)
                 throw error
             }
 
-            console.log('✅ Actividades obtenidas:', data?.length || 0)
 
             return (data || []) as Actividad[]
         } catch (error) {
-            console.error('❌ Error en obtenerTodas:', error)
             throw error
         }
     }
@@ -81,7 +75,6 @@ export class ActividadesService {
      */
     static async obtenerPorId(id: string): Promise<Actividad> {
         try {
-            console.log('📡 Service: obtenerPorId', id)
 
             const {
                 data: { user },
@@ -115,11 +108,9 @@ export class ActividadesService {
                 throw error
             }
 
-            console.log('✅ Actividad obtenida:', data)
 
             return data as Actividad
         } catch (error) {
-            console.error('❌ Error en obtenerPorId:', error)
             throw error
         }
     }
@@ -135,7 +126,6 @@ export class ActividadesService {
      */
     static async crear(actividadData: ActividadCreate): Promise<Actividad> {
         try {
-            console.log('📡 Service: crear actividad')
 
             // 1. Obtener usuario actual
             const {
@@ -176,7 +166,6 @@ export class ActividadesService {
                 user_id: user.id,
             }
 
-            console.log('📤 Datos a insertar:', datosCompletos)
 
             // 4. Insertar en BD
             const { data, error } = await supabase
@@ -186,15 +175,12 @@ export class ActividadesService {
                 .single()
 
             if (error) {
-                console.error('❌ Error de Supabase:', error)
                 throw error
             }
 
-            console.log('✅ Actividad creada:', data)
 
             return data as Actividad
         } catch (error: any) {
-            console.error('❌ Error en crear:', error)
             throw error
         }
     }
@@ -211,7 +197,6 @@ export class ActividadesService {
         updates: ActividadUpdate
     ): Promise<Actividad> {
         try {
-            console.log('📡 Service: actualizar actividad', id)
 
             const {
                 data: { user },
@@ -277,11 +262,9 @@ export class ActividadesService {
                 throw new Error('No se pudo actualizar la actividad o no tienes permisos')
             }
 
-            console.log('✅ Actividad actualizada:', data[0])
 
             return data[0] as Actividad
         } catch (error) {
-            console.error('❌ Error en actualizar:', error)
             throw error
         }
     }
@@ -299,7 +282,6 @@ export class ActividadesService {
      */
     static async eliminar(id: string): Promise<void> {
         try {
-            console.log('📡 Service: eliminar actividad', id)
 
             const {
                 data: { user },
@@ -338,9 +320,7 @@ export class ActividadesService {
 
             if (error) throw error
 
-            console.log('✅ Actividad eliminada')
         } catch (error) {
-            console.error('❌ Error en eliminar:', error)
             throw error
         }
     }
@@ -359,7 +339,6 @@ export class ActividadesService {
         porcentaje: number
     }> {
         try {
-            console.log('📡 Service: calcularProgreso', actividadId)
 
             // Obtener la actividad para conocer la meta
             const actividad = await this.obtenerPorId(actividadId)
@@ -384,7 +363,6 @@ export class ActividadesService {
                 porcentaje: Math.round(porcentaje * 100) / 100, // 2 decimales
             }
         } catch (error) {
-            console.error('❌ Error en calcularProgreso:', error)
             return { recaudado: 0, meta: 0, porcentaje: 0 }
         }
     }
@@ -420,7 +398,6 @@ export class ActividadesService {
                 totalMetas,
             }
         } catch (error) {
-            console.error('❌ Error en obtenerEstadisticas:', error)
             return {
                 total: 0,
                 planeadas: 0,

@@ -6,12 +6,19 @@ import { Button } from '@/components/ui/Button'
 import { SavingOverlay } from '@/components/ui/SavingOverlay'
 import { Calendar, Target, FileText } from 'lucide-react'
 
+interface ActividadFormProps {
+    initialData?: Partial<ActividadCreate> & { id?: string }
+    onSubmit: (data: ActividadCreate) => Promise<void>
+    onCancel: () => void
+    isLoading?: boolean
+}
+
 export const ActividadForm = ({
     initialData,
     onSubmit,
     onCancel,
     isLoading: externalLoading = false,
-}) => {
+}: ActividadFormProps) => {
     const [isSuccess, setIsSuccess] = useState(false)
     const [internalLoading, setInternalLoading] = useState(false)
     const isLoading = externalLoading || internalLoading

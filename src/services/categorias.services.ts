@@ -26,7 +26,6 @@ export class CategoriasService {
       .single()
 
     if (error || !profile) {
-      console.error('Error verificando rol:', error)
       throw new Error('Error verificando permisos')
     }
 
@@ -45,7 +44,6 @@ export class CategoriasService {
    */
   static async obtenerTodas(): Promise<Categoria[]> {
     try {
-      console.log('📡 Service: obtenerTodas categorías')
 
       // 1. Verificar autenticación
       const {
@@ -56,7 +54,6 @@ export class CategoriasService {
         throw new Error('No autenticado')
       }
 
-      console.log('👤 Usuario:', user.id)
 
       // 2. Consultar categorías del usuario
       const { data, error } = await supabase
@@ -66,15 +63,12 @@ export class CategoriasService {
         .order('nombre', { ascending: true })
 
       if (error) {
-        console.error('❌ Error de Supabase:', error)
         throw error
       }
 
-      console.log('✅ Categorías obtenidas:', data?.length || 0)
 
       return (data || []) as Categoria[]
     } catch (error) {
-      console.error('❌ Error en obtenerTodas:', error)
       throw error
     }
   }
@@ -88,7 +82,6 @@ export class CategoriasService {
    */
   static async obtenerPorTipo(tipo: 'ingreso' | 'egreso'): Promise<Categoria[]> {
     try {
-      console.log('📡 Service: obtenerPorTipo:', tipo)
 
       const {
         data: { user },
@@ -107,11 +100,9 @@ export class CategoriasService {
 
       if (error) throw error
 
-      console.log(`✅ Categorías de ${tipo}:`, data?.length || 0)
 
       return (data || []) as Categoria[]
     } catch (error) {
-      console.error('❌ Error en obtenerPorTipo:', error)
       throw error
     }
   }
@@ -126,7 +117,6 @@ export class CategoriasService {
    */
   static async crear(categoriaData: CategoriaCreate): Promise<Categoria> {
     try {
-      console.log('📡 Service: crear categoría')
 
       // 1. Obtener usuario actual
       const {
@@ -159,7 +149,6 @@ export class CategoriasService {
         user_id: user.id,
       }
 
-      console.log('📤 Datos a insertar:', datosCompletos)
 
       // 4. Insertar en BD
       const { data, error } = await supabase
@@ -169,15 +158,12 @@ export class CategoriasService {
         .single()
 
       if (error) {
-        console.error('❌ Error de Supabase:', error)
         throw error
       }
 
-      console.log('✅ Categoría creada:', data)
 
       return data as Categoria
     } catch (error: any) {
-      console.error('❌ Error en crear:', error)
       throw error
     }
   }
@@ -198,7 +184,6 @@ export class CategoriasService {
     updates: CategoriaUpdate
   ): Promise<Categoria> {
     try {
-      console.log('📡 Service: actualizar categoría', id)
 
       const {
         data: { user },
@@ -240,11 +225,9 @@ export class CategoriasService {
         throw new Error('No se pudo actualizar la categoría')
       }
 
-      console.log('✅ Categoría actualizada:', data[0])
 
       return data[0] as Categoria
     } catch (error) {
-      console.error('❌ Error en actualizar:', error)
       throw error
     }
   }
@@ -259,7 +242,6 @@ export class CategoriasService {
    */
   static async eliminar(id: string): Promise<void> {
     try {
-      console.log('📡 Service: eliminar categoría', id)
 
       const {
         data: { user },
@@ -292,9 +274,7 @@ export class CategoriasService {
 
       if (error) throw error
 
-      console.log('✅ Categoría eliminada')
     } catch (error) {
-      console.error('❌ Error en eliminar:', error)
       throw error
     }
   }
@@ -323,7 +303,6 @@ export class CategoriasService {
         total: categorias.length,
       }
     } catch (error) {
-      console.error('❌ Error en obtenerEstadisticas:', error)
       return { totalIngresos: 0, totalEgresos: 0, total: 0 }
     }
   }

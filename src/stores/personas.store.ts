@@ -69,7 +69,6 @@ export const usePersonasStore = create<PersonasStore>()(
           const data = await PersonasService.obtenerMias()
           set({ personas: data, loading: false, lastUpdated: Date.now() })
         } catch (error: any) {
-          console.error('Error fetching personas:', error)
           set({ error: error.message || 'Error al cargar personas', loading: false })
         }
       },

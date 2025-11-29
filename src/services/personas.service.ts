@@ -50,7 +50,6 @@ export class PersonasService {
 
       return (data || []) as Persona[]
     } catch (error: any) {
-      console.error('Error obteniendo personas:', error)
       throw error
     }
   }
@@ -124,7 +123,6 @@ export class PersonasService {
           return cumA.getTime() - cumB.getTime()
         })
     } catch (error: any) {
-      console.error('Error obteniendo cumpleaños:', error)
       return []
     }
   }
@@ -143,7 +141,6 @@ export class PersonasService {
       if (error) throw error
       return data as Persona
     } catch (error: any) {
-      console.error('Error obteniendo persona:', error)
       throw error
     }
   }
@@ -152,7 +149,6 @@ export class PersonasService {
    * Crear persona
    */
   static async crear(personaData: PersonaCreate): Promise<Persona> {
-    console.log('📡 Service: crear iniciado')
 
     try {
       // 1. Obtener usuario actual
@@ -164,7 +160,6 @@ export class PersonasService {
         throw new Error('No autenticado')
       }
 
-      console.log('👤 Usuario actual:', user.id)
 
       // 2. Validar cédula única a nivel global (sin filtrar por user_id)
       const { data: existente } = await supabase
@@ -202,7 +197,6 @@ export class PersonasService {
         sede_id: authUser.sede_id,
       }
 
-      console.log('📤 Datos a insertar:', datosCompletos)
 
       // 4. Insertar en BD
       const { data, error } = await supabase
@@ -212,15 +206,12 @@ export class PersonasService {
         .single()
 
       if (error) {
-        console.error('❌ Service: Error de Supabase:', error)
         throw new Error(error.message)
       }
 
-      console.log('✅ Service: Persona creada:', data)
 
       return data as Persona
     } catch (error: any) {
-      console.error('❌ Service: Error en crear:', error)
       throw error
     }
   }
@@ -254,7 +245,6 @@ export class PersonasService {
       // Retornar el primer elemento del array
       return (data && data.length > 0 ? data[0] : data) as Persona
     } catch (error: any) {
-      console.error('Error actualizando persona:', error)
       throw error
     }
   }
@@ -273,7 +263,6 @@ export class PersonasService {
       if (error) throw error
       return true
     } catch (error: any) {
-      console.error('Error eliminando persona:', error)
       throw error
     }
   }

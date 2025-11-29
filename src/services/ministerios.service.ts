@@ -34,7 +34,6 @@ export class MinisteriosService {
         created_at: row.created_at ?? '',
       })) as Ministerio[]
     } catch (error) {
-      console.error('Error obteniendo ministerios:', error)
       throw error
     }
   }
@@ -71,7 +70,6 @@ export class MinisteriosService {
           created_at: row.created_at ?? '',
         })) as Ministerio[]
     } catch (error) {
-      console.error('Error obteniendo ministerios de persona:', error)
       return [] // Retornar array vacío en caso de error
     }
   }
@@ -104,7 +102,6 @@ export class MinisteriosService {
         if (error) throw error
       }
     } catch (error) {
-      console.error('Error asignando ministerios:', error)
       throw error
     }
   }

@@ -24,16 +24,13 @@ export const NuevaTransaccionPage: React.FC = () => {
         setError(null)
 
         try {
-            console.log('📤 Creando transacción:', data)
             const nuevaTransaccion = await TransaccionesService.crear(data)
             addTransaccion(nuevaTransaccion)
-            console.log('✅ Transacción creada exitosamente:', nuevaTransaccion.numero_transaccion)
             setIsSuccess(true)
             setTimeout(() => {
                 navigate('/transacciones')
             }, 1500)
         } catch (error: any) {
-            console.error('❌ Error creando transacción:', error)
             setError(error.message || 'Error al crear transacción')
         } finally {
             setIsLoading(false)

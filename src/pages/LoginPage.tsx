@@ -54,13 +54,11 @@ export const LoginPage: React.FC = () => {
       setUser(result.user)
       setToken(result.token)
 
-      console.log('✅ Login exitoso')
 
       // Redirigir a dashboard
       navigate('/dashboard')
 
     } catch (error: any) {
-      console.error('Error:', error)
 
       // Mostrar error específico
       if (error.message.includes('Invalid login credentials')) {

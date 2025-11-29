@@ -53,7 +53,6 @@ export const UsuariosPage = () => {
             if (error) throw error
             setUsers(data || [])
         } catch (error) {
-            console.error('Error fetching users:', error)
         } finally {
             setLoading(false)
         }
@@ -117,7 +116,6 @@ export const UsuariosPage = () => {
                         })
 
                     if (profileError) {
-                        console.error('Error creating profile:', profileError)
                         throw new Error('Error al crear el perfil: ' + profileError.message)
                     }
                 }
@@ -135,7 +133,6 @@ export const UsuariosPage = () => {
             }, 1500)
 
         } catch (error: any) {
-            console.error('Error saving user:', error)
             alert('Error: ' + error.message)
             setIsSaving(false)
         }
@@ -172,7 +169,6 @@ export const UsuariosPage = () => {
             }, 1500)
 
         } catch (error: any) {
-            console.error('Error deleting user:', error)
             alert('Error al eliminar: ' + error.message)
             setIsDeleting(false)
         }

@@ -41,7 +41,6 @@ export const ExportReports: React.FC<ExportReportsProps> = ({ onBack }) => {
                 ExportService.exportToExcel(transacciones, `reporte_transacciones_${fechaInicio}_${fechaFin}`)
             }
         } catch (err: any) {
-            console.error('Error exporting:', err)
             setError(err.message || 'Error al exportar los datos')
         } finally {
             setIsLoading(false)

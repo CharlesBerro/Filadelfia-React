@@ -91,12 +91,10 @@ export const useCategoriasStore = create<CategoriasState>((set) => ({
   // ============ ACCIONES ============
 
   setCategorias: (categorias) => {
-    console.log('🏪 Store: setCategorias llamado con', categorias.length, 'categorías')
     set({ categorias, error: null })
   },
 
   addCategoria: (categoria) => {
-    console.log('🏪 Store: addCategoria llamado', categoria)
     set((state) => ({
       categorias: [categoria, ...state.categorias].sort((a, b) =>
         a.nombre.localeCompare(b.nombre)
@@ -106,7 +104,6 @@ export const useCategoriasStore = create<CategoriasState>((set) => ({
   },
 
   updateCategoria: (id, categoriaData) => {
-    console.log('🏪 Store: updateCategoria llamado', id, categoriaData)
     set((state) => ({
       categorias: state.categorias
         .map((c) => (c.id === id ? { ...c, ...categoriaData } : c))
@@ -116,7 +113,6 @@ export const useCategoriasStore = create<CategoriasState>((set) => ({
   },
 
   removeCategoria: (id) => {
-    console.log('🏪 Store: removeCategoria llamado', id)
     set((state) => ({
       categorias: state.categorias.filter((c) => c.id !== id),
       error: null,
@@ -128,7 +124,6 @@ export const useCategoriasStore = create<CategoriasState>((set) => ({
   setError: (error) => set({ error }),
 
   clearCategorias: () => {
-    console.log('🏪 Store: clearCategorias llamado')
     set({ categorias: [], loading: false, error: null })
   },
 }))

@@ -212,7 +212,6 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
                 setValue('categoria_id', '') // Resetear al cambiar de tipo
             }
         } catch (error) {
-            console.error('Error cargando categorías:', error)
         } finally {
             setLoadingCategorias(false)
         }
@@ -230,7 +229,6 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
             if (error) throw error
             setActividades(data || [])
         } catch (error) {
-            console.error('Error cargando actividades:', error)
         } finally {
             setLoadingActividades(false)
         }
@@ -249,7 +247,6 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
             if (error) throw error
             setPersonas(data || [])
         } catch (error) {
-            console.error('Error buscando persona:', error)
             setPersonas([])
         } finally {
             setSearchingPersona(false)
@@ -301,7 +298,6 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
         try {
             await onSubmit(data)
         } catch (error) {
-            console.error('Error en formulario:', error)
         }
     }
 

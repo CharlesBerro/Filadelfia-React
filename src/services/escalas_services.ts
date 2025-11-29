@@ -24,7 +24,6 @@ export class EscalasService {
         created_at: row.created_at ?? '',
       })) as EscalaCrecimiento[]
     } catch (error) {
-      console.error('Error obteniendo escalas:', error)
       throw error
     }
   }
@@ -60,7 +59,6 @@ export class EscalasService {
           created_at: row.created_at ?? '',
         })) as EscalaCrecimiento[]
     } catch (error) {
-      console.error('Error obteniendo escalas de persona:', error)
       throw error
     }
   }
@@ -93,7 +91,6 @@ export class EscalasService {
         if (error) throw error
       }
     } catch (error) {
-      console.error('Error asignando escalas:', error)
       throw error
     }
   }

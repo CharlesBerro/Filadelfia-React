@@ -15,7 +15,6 @@ export class SedesService {
             if (error) throw error
             return (data || []) as Sede[]
         } catch (error: any) {
-            console.error('Error obteniendo sedes:', error)
             throw error
         }
     }

@@ -22,13 +22,10 @@ export const NuevaActividadPage: React.FC = () => {
         setError(null)
 
         try {
-            console.log('📤 Creando actividad:', data)
             const nuevaActividad = await ActividadesService.crear(data)
             addActividad(nuevaActividad)
-            console.log('✅ Actividad creada exitosamente')
             navigate('/actividades')
         } catch (error: any) {
-            console.error('❌ Error creando actividad:', error)
             setError(error.message || 'Error al crear actividad')
         } finally {
             setIsLoading(false)

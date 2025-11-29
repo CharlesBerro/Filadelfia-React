@@ -26,7 +26,6 @@ export const TransaccionesStats: React.FC = () => {
             const data = await TransaccionesService.obtenerEstadisticas(filters)
             setStats(data)
         } catch (error: any) {
-            console.error('Error cargando estadísticas:', error)
             setError(error.message)
         } finally {
             setLoadingStats(false)

@@ -32,7 +32,6 @@ export const CumpleanosCard: React.FC = () => {
 
         setProximosCumpleanios(soloProximos.slice(0, 3)) // Top 3 próximos
       } catch (error) {
-        console.error('Error:', error)
       } finally {
         setLoading(false)
       }

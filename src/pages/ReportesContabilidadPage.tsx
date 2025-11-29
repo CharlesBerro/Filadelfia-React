@@ -24,15 +24,10 @@ export const ReportesContabilidadPage: React.FC = () => {
     const cargarDatos = async () => {
         try {
             setIsLoading(true)
-            console.log('[ReportesContabilidad] 🔍 Iniciando carga de datos...')
             const data = await TransaccionesService.obtenerTodas()
-            console.log('[ReportesContabilidad] ✅ Transacciones cargadas:', data.length)
-            console.log('[ReportesContabilidad] 📋 Todas las transacciones:', data)
-            console.log('[ReportesContabilidad] 📊 Estados:', data.map(t => t.estado))
             setTransacciones(data)
             setTransaccionesFiltradas(data)
         } catch (error) {
-            console.error('[ReportesContabilidad] ❌ Error cargando datos:', error)
         } finally {
             setIsLoading(false)
         }
@@ -55,7 +50,6 @@ export const ReportesContabilidadPage: React.FC = () => {
             return true
         })
 
-        console.log('[Filtros] Transacciones filtradas:', filtered.length)
         setTransaccionesFiltradas(filtered)
     }
 
@@ -87,13 +81,10 @@ export const ReportesContabilidadPage: React.FC = () => {
 
     // Exportar
     const handleExportPDF = () => {
-        console.log('[Export PDF] Transacciones a exportar:', transaccionesFiltradas.length)
-        console.log('[Export PDF] Primera transacción:', transaccionesFiltradas[0])
         ExportService.exportToPDF(transaccionesFiltradas, 'Reporte de Transacciones')
     }
 
     const handleExportExcel = () => {
-        console.log('[Export Excel] Transacciones a exportar:', transaccionesFiltradas.length)
         ExportService.exportToExcel(transaccionesFiltradas, 'reporte_transacciones')
     }
 

@@ -63,7 +63,6 @@ export const useCedulaValidator = () => {
         .maybeSingle()
 
       if (error) {
-        console.error('Error validando cédula:', error)
         setValidation({
           isValidating: false,
           existe: false,
@@ -93,7 +92,6 @@ export const useCedulaValidator = () => {
       })
       return true
     } catch (error) {
-      console.error('Error:', error)
       setValidation({
         isValidating: false,
         existe: false,

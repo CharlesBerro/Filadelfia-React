@@ -66,7 +66,6 @@ export const FotoUploader: React.FC<FotoUploaderProps> = ({
 
       reader.readAsDataURL(file)
     } catch (error) {
-      console.error('Error:', error)
       alert('Error al procesar la imagen')
       setLoading(false)
     }

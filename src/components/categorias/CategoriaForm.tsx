@@ -80,7 +80,6 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
       }, 1500)
 
     } catch (error: any) {
-      console.error('Error guardando categoría:', error)
       alert(error.message || 'Error al guardar la categoría')
       setLoading(false)
     }

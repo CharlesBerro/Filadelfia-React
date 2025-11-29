@@ -34,12 +34,9 @@ export const ActividadesPage: React.FC = () => {
         setError(null)
 
         try {
-            console.log('🔄 Cargando actividades...')
             const data = await ActividadesService.obtenerTodas()
             setActividades(data)
-            console.log('✅ Actividades cargadas:', data.length)
         } catch (error: any) {
-            console.error('❌ Error cargando actividades:', error)
             setError(error.message || 'Error al cargar actividades')
         } finally {
             setLoadingData(false)

@@ -58,7 +58,6 @@ export const CategoriasTable: React.FC = () => {
       setShowDeleteModal(false)
       setCategoriaAEliminar(null)
     } catch (error: any) {
-      console.error('Error eliminando categoría:', error)
       // Mostrar error en el modal en lugar de cerrarlo
       setErrorEliminar(
         error.message || 'No se pudo eliminar la categoría'

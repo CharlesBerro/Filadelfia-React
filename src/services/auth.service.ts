@@ -62,7 +62,6 @@ export class AuthService {
         token: data.session.access_token,
       }
     } catch (error: any) {
-      console.error('Error en login:', error)
       throw error
     }
   }
@@ -113,7 +112,6 @@ export class AuthService {
         message: 'Usuario creado. Verifica tu email.',
       }
     } catch (error: any) {
-      console.error('Error en signup:', error)
       throw error
     }
   }
@@ -127,7 +125,6 @@ export class AuthService {
       if (error) throw error
       return true
     } catch (error: any) {
-      console.error('Error en logout:', error)
       throw error
     }
   }
@@ -141,7 +138,6 @@ export class AuthService {
       if (error) throw error
       return data.session
     } catch (error: any) {
-      console.error('Error obteniendo sesión:', error)
       return null
     }
   }
@@ -160,7 +156,6 @@ export class AuthService {
       if (error) throw error
       return data
     } catch (error: any) {
-      console.error('Error obteniendo usuario:', error)
       return null
     }
   }

@@ -102,7 +102,6 @@ export const PersonaForm: React.FC = () => {
       setMinisterios(ministeriosData)
       setEscalas(escalasData)
     } catch (error) {
-      console.error('Error cargando datos:', error)
     }
   }
 
@@ -205,7 +204,6 @@ export const PersonaForm: React.FC = () => {
         navigate('/personas')
       }, 1500)
     } catch (error: any) {
-      console.error('Error:', error)
       alert(error.message || 'Error al crear persona')
       setSaveStatus('idle')
     } finally {

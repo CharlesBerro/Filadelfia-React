@@ -69,7 +69,6 @@ export const PersonasTable: React.FC<PersonasTableProps> = ({
       // setPersonas(datos) // No actualizamos el store aquí si somos controlados, pero PersonasPage lo hace
       await cargarMinisteriosYEscalas(datos)
     } catch (error: any) {
-      console.error('Error:', error.message)
       setError(error.message || 'Error cargando personas')
     } finally {
       setLoading(false)
@@ -96,7 +95,6 @@ export const PersonasTable: React.FC<PersonasTableProps> = ({
           ministeriosCache[persona.id] = ministerios
           escalasCache[persona.id] = escalas
         } catch (error) {
-          console.error(`Error cargando detalles para ${persona.id}`, error)
         }
       })
     )
@@ -129,7 +127,6 @@ export const PersonasTable: React.FC<PersonasTableProps> = ({
       setDeleteSuccessMsg('El registro a sido eliminado')
       setDeletingId(null)
     } catch (error) {
-      console.error('Error:', error)
       alert('Error al eliminar persona')
       setDeletingId(null)
       setShowDeleteModal(false)

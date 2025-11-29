@@ -30,7 +30,6 @@ export const PersonasPage: React.FC = () => {
         const data = await SedesService.obtenerTodas()
         setSedes(data)
       } catch (error) {
-        console.error('Error cargando sedes:', error)
       }
     }
     cargarSedes()

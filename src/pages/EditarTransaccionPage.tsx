@@ -66,7 +66,6 @@ export const EditarTransaccionPage: React.FC = () => {
         setError(null)
 
         try {
-            console.log('📤 Actualizando transacción:', data)
             const transaccionActualizada = await TransaccionesService.actualizar(id, data)
             updateTransaccion(id, transaccionActualizada)
             setIsSuccess(true)
@@ -74,7 +73,6 @@ export const EditarTransaccionPage: React.FC = () => {
                 navigate('/transacciones')
             }, 1500)
         } catch (error: any) {
-            console.error('❌ Error actualizando transacción:', error)
             setError(error.message || 'Error al actualizar transacción')
         } finally {
             setIsLoading(false)

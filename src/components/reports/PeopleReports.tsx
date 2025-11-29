@@ -33,7 +33,6 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
                 const data = await SedesService.obtenerTodas()
                 setSedes(data)
             } catch (error) {
-                console.error('Error cargando sedes:', error)
             }
         }
         cargarSedes()
@@ -41,8 +40,6 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
 
     // Filtrar personas basado en la sede seleccionada
     const filteredPersonas = useMemo(() => {
-        console.log('🔄 Filtrando personas. Sede seleccionada:', selectedSede)
-        console.log('📊 Total personas antes del filtro:', personas.length)
 
         if (selectedSede === 'all') return personas
 
@@ -53,7 +50,6 @@ export const PeopleReports: React.FC<PeopleReportsProps> = ({ onBack }) => {
             return personSedeId === filterSedeId
         })
 
-        console.log('✅ Personas después del filtro:', filtradas.length)
         return filtradas
     }, [personas, selectedSede])
 

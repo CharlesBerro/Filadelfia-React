@@ -55,7 +55,6 @@ export const EditarPersonaPage: React.FC = () => {
         setMinisteriosSeleccionados(minsPersona.map((m) => m.id))
         setEscalasSeleccionadas(escsPersona.map((e) => e.id))
       } catch (err: any) {
-        console.error('Error cargando persona:', err)
         setError(err.message || 'Error cargando persona')
       } finally {
         setLoading(false)
@@ -134,7 +133,6 @@ export const EditarPersonaPage: React.FC = () => {
         navigate(`/personas/${id}`)
       }, 1500)
     } catch (err: any) {
-      console.error('Error actualizando persona:', err)
       setError(err.message || 'Error al actualizar persona')
     } finally {
       setSaving(false)

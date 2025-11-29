@@ -31,7 +31,6 @@ export const ActividadesStats: React.FC = () => {
             const data = await ActividadesService.obtenerEstadisticas()
             setStats(data)
         } catch (error) {
-            console.error('Error cargando estadísticas:', error)
         } finally {
             setLoading(false)
         }

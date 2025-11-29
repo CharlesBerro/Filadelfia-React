@@ -23,7 +23,6 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
       logout()
       navigate('/login')
     } catch (error) {
-      console.error('Error logout:', error)
       logout()
       navigate('/login')
     }

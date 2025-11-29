@@ -25,19 +25,13 @@ export const ReportesPersonasPage: React.FC = () => {
 
     useEffect(() => {
         const loadData = async () => {
-            console.log('🔍 [ReportesPersonas] Iniciando carga de datos...')
-            console.log('🔍 [ReportesPersonas] Personas actuales en store:', personas?.length || 0)
 
             setIsLoading(true)
             try {
-                console.log('🔍 [ReportesPersonas] Llamando fetchPersonas()...')
                 await fetchPersonas()
-                console.log('✅ [ReportesPersonas] fetchPersonas() completado')
             } catch (error) {
-                console.error('❌ [ReportesPersonas] Error cargando personas:', error)
             } finally {
                 setIsLoading(false)
-                console.log('🔍 [ReportesPersonas] Carga finalizada. isLoading ahora es false')
             }
         }
         loadData()
@@ -45,17 +39,11 @@ export const ReportesPersonasPage: React.FC = () => {
 
     // Procesar datos cuando cambian las personas o los filtros
     useEffect(() => {
-        console.log('🔄 [ReportesPersonas useEffect#2] Ejecutando procesamiento...')
-        console.log('🔄 [ReportesPersonas useEffect#2] personas:', personas?.length || 0)
-        console.log('🔄 [ReportesPersonas useEffect#2] fechaInicio:', fechaInicio)
-        console.log('🔄 [ReportesPersonas useEffect#2] fechaFin:', fechaFin)
 
         if (!personas || personas.length === 0) {
-            console.warn('⚠️ [ReportesPersonas useEffect#2] No hay personas para procesar, saliendo...')
             return
         }
 
-        console.log('📊 Procesando datos para reportes...', personas.length)
 
         // Filtrar personas
         let personasFiltradas = [...personas]
@@ -64,7 +52,6 @@ export const ReportesPersonasPage: React.FC = () => {
             personasFiltradas = personasFiltradas.filter(p =>
                 new Date(p.created_at) >= new Date(fechaInicio)
             )
-            console.log('📊 Después de filtro fechaInicio:', personasFiltradas.length)
         }
 
         if (fechaFin) {
@@ -73,10 +60,8 @@ export const ReportesPersonasPage: React.FC = () => {
             personasFiltradas = personasFiltradas.filter(p =>
                 new Date(p.created_at) <= fin
             )
-            console.log('📊 Después de filtro fechaFin:', personasFiltradas.length)
         }
 
-        console.log('📊 Total personas filtradas:', personasFiltradas.length)
 
         // 1. Crecimiento (Por mes de creación)
         const growthMap = new Map<string, number>()
@@ -122,7 +107,6 @@ export const ReportesPersonasPage: React.FC = () => {
             '70+': 0
         }
 
-        console.log('📊 [Age Processing] Total personas filtradas para edad:', personasFiltradas.length)
         let personasConEdad = 0
         let personasSinEdad = 0
 
@@ -130,7 +114,6 @@ export const ReportesPersonasPage: React.FC = () => {
             if (p.fecha_nacimiento) {
                 personasConEdad++
                 const age = differenceInYears(new Date(), parseISO(p.fecha_nacimiento))
-                console.log(`📊 [Age] Persona ${p.full_name}: edad ${age} (nacimiento: ${p.fecha_nacimiento})`)
                 if (age <= 12) ageRanges['0-12']++
                 else if (age <= 17) ageRanges['13-17']++
                 else if (age <= 30) ageRanges['18-30']++
@@ -142,15 +125,11 @@ export const ReportesPersonasPage: React.FC = () => {
             }
         })
 
-        console.log('📊 [Age Results] Personas con fecha de nacimiento:', personasConEdad)
-        console.log('📊 [Age Results] Personas sin fecha de nacimiento:', personasSinEdad)
-        console.log('📊 [Age Results] Distribución por rango:', ageRanges)
 
         const ageDataProcessed = Object.entries(ageRanges).map(([range, count]) => ({
             name: range,
             value: count
         }))
-        console.log('📊 [Age Results] ageDataProcessed:', ageDataProcessed)
         setAgeData(ageDataProcessed)
 
         // 4. Bautizados

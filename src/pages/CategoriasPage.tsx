@@ -35,12 +35,9 @@ export const CategoriasPage: React.FC = () => {
     setError(null)
 
     try {
-      console.log('🔄 Cargando categorías...')
       const data = await CategoriasService.obtenerTodas()
       setCategorias(data)
-      console.log('✅ Categorías cargadas:', data.length)
     } catch (error: any) {
-      console.error('❌ Error cargando categorías:', error)
       setError(error.message || 'Error al cargar categorías')
     } finally {
       setLoadingData(false)

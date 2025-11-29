@@ -27,9 +27,6 @@ export class TransaccionesService {
         const { user } = useAuthStore.getState()
         if (!user) throw new Error('Usuario no autenticado')
 
-        console.log('[TransaccionesService] 👤 Usuario:', user.email, '| Rol:', user.role, '| ID:', user.id)
-        console.log('[TransaccionesService] 🔍 Filtros recibidos:', filters)
-
         let query = supabase
             .from('transacciones')
             .select(`
@@ -43,10 +40,7 @@ export class TransaccionesService {
 
         // Filtro por permisos: usuarios ven solo sus transacciones
         if (user.role !== 'admin') {
-            console.log('[TransaccionesService] ⚠️  Usuario NO es admin, filtrando por user_id')
             query = query.eq('user_id', user.id)
-        } else {
-            console.log('[TransaccionesService] ✅ Usuario ES ADMIN, mostrando TODAS las transacciones')
         }
 
         // Aplicar filtros
@@ -71,26 +65,19 @@ export class TransaccionesService {
         if (filters?.estado) {
             if (filters.estado === 'todas') {
                 // No aplicar filtro de estado, mostrar todo
-                console.log('[TransaccionesService] 📌 Mostrando TODAS las transacciones (Activas + Anuladas)')
             } else {
                 query = query.eq('estado', filters.estado)
             }
         } else {
             // Por defecto, solo mostrar transacciones activas
-            console.log('[TransaccionesService] 📌 Aplicando filtro por defecto: estado=activa')
             query = query.eq('estado', 'activa')
         }
 
-        console.log('[TransaccionesService] 🚀 Ejecutando query a Supabase...')
         const { data, error } = await query
 
         if (error) {
-            console.error('[TransaccionesService] ❌ Error obteniendo transacciones:', error)
             throw new Error('Error al cargar transacciones')
         }
-
-        console.log('[TransaccionesService] ✅ Transacciones obtenidas de Supabase:', data?.length || 0)
-        console.log('[TransaccionesService] 📋 Primeras 3:', data?.slice(0, 3))
 
         return data as TransaccionCompleta[]
     }
@@ -114,7 +101,6 @@ export class TransaccionesService {
             .single()
 
         if (error) {
-            console.error('Error obteniendo transacción:', error)
             throw new Error('Transacción no encontrada')
         }
 
@@ -167,7 +153,6 @@ export class TransaccionesService {
             .single()
 
         if (error) {
-            console.error('Error creando transacción:', error)
             throw new Error('Error al crear transacción')
         }
 
@@ -219,7 +204,6 @@ export class TransaccionesService {
             .single()
 
         if (error) {
-            console.error('Error actualizando transacción:', error)
             throw new Error('Error al actualizar transacción')
         }
 
@@ -266,7 +250,6 @@ export class TransaccionesService {
             .single()
 
         if (error) {
-            console.error('Error anulando transacción:', error)
             throw new Error('Error al anular transacción')
         }
 
@@ -290,7 +273,6 @@ export class TransaccionesService {
             .limit(1)
 
         if (error) {
-            console.error('Error obteniendo último número:', error)
             // Si hay error, empezar desde 1
             return `${prefijo}001`
         }
@@ -349,7 +331,6 @@ export class TransaccionesService {
         const { data, error } = await query
 
         if (error) {
-            console.error('Error obteniendo estadísticas:', error)
             throw new Error('Error al calcular estadísticas')
         }
 

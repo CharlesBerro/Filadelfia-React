@@ -91,12 +91,10 @@ export const useActividadesStore = create<ActividadesState>((set) => ({
     // ============ ACCIONES ============
 
     setActividades: (actividades) => {
-        console.log('🏪 Store: setActividades llamado con', actividades.length, 'actividades')
         set({ actividades, error: null })
     },
 
     addActividad: (actividad) => {
-        console.log('🏪 Store: addActividad llamado', actividad)
         set((state) => ({
             actividades: [actividad, ...state.actividades],
             error: null,
@@ -104,7 +102,6 @@ export const useActividadesStore = create<ActividadesState>((set) => ({
     },
 
     updateActividad: (id, actividadData) => {
-        console.log('🏪 Store: updateActividad llamado', id, actividadData)
         set((state) => ({
             actividades: state.actividades.map((a) =>
                 a.id === id ? { ...a, ...actividadData } : a
@@ -114,7 +111,6 @@ export const useActividadesStore = create<ActividadesState>((set) => ({
     },
 
     removeActividad: (id) => {
-        console.log('🏪 Store: removeActividad llamado', id)
         set((state) => ({
             actividades: state.actividades.filter((a) => a.id !== id),
             error: null,
@@ -126,7 +122,6 @@ export const useActividadesStore = create<ActividadesState>((set) => ({
     setError: (error) => set({ error }),
 
     clearActividades: () => {
-        console.log('🏪 Store: clearActividades llamado')
         set({ actividades: [], loading: false, error: null })
     },
 }))

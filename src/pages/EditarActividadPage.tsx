@@ -45,13 +45,10 @@ export const EditarActividadPage: React.FC = () => {
         setError(null)
 
         try {
-            console.log('📤 Actualizando actividad:', data)
             const actividadActualizada = await ActividadesService.actualizar(id, data)
             updateActividad(id, actividadActualizada)
-            console.log('✅ Actividad actualizada exitosamente')
             navigate('/actividades')
         } catch (error: any) {
-            console.error('❌ Error actualizando actividad:', error)
             setError(error.message || 'Error al actualizar actividad')
         } finally {
             setIsLoading(false)

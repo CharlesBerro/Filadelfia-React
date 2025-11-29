@@ -2,22 +2,19 @@ import React, { useEffect, useState } from 'react'
 import { PersonasService } from '@/services/personas.service'
 import type { Persona } from '@/types'
 import { Cake, PartyPopper } from 'lucide-react'
+
 export const CumpleanosHoyCard: React.FC = () => {
     const [cumpleanosHoy, setCumpleanosHoy] = useState<Persona[]>([])
     const [loading, setLoading] = useState(true)
+
     useEffect(() => {
         const cargarCumpleanosHoy = async () => {
             try {
                 const todas = await PersonasService.obtenerProximosCumpleanos()
-                console.log('🎂 Todas las personas:', todas)
 
                 // Filtrar solo las personas que cumplen HOY
                 const hoy = new Date()
-                console.log('📅 HOY es:', {
-                    fecha: hoy.toISOString(),
-                    día: hoy.getDate(),
-                    mes: hoy.getMonth()
-                })
+
                 const cumpleanosHoyFiltrado = todas.filter(persona => {
                     if (!persona.fecha_nacimiento) return false
 
@@ -27,21 +24,12 @@ export const CumpleanosHoyCard: React.FC = () => {
                         : persona.fecha_nacimiento
                     const [anio, mes, dia] = fechaStr.split('-').map(Number)
 
-                    console.log(`👤 ${persona.nombres}:`, {
-                        fecha_original: persona.fecha_nacimiento,
-                        dia_parseado: dia,
-                        mes_parseado: mes,
-                        hoy_dia: hoy.getDate(),
-                        hoy_mes: hoy.getMonth() + 1
-                    })
-
                     return dia === hoy.getDate() && (mes - 1) === hoy.getMonth()
                 })
 
-                console.log('🎉 Personas que cumplen HOY:', cumpleanosHoyFiltrado)
                 setCumpleanosHoy(cumpleanosHoyFiltrado)
             } catch (error) {
-                console.error('Error:', error)
+                // Error silenciado
             } finally {
                 setLoading(false)
             }
@@ -49,6 +37,7 @@ export const CumpleanosHoyCard: React.FC = () => {
 
         cargarCumpleanosHoy()
     }, [])
+
     if (loading) {
         return (
             <div className="bg-white rounded-xl shadow-md p-6 border border-amber-100">
@@ -59,6 +48,7 @@ export const CumpleanosHoyCard: React.FC = () => {
             </div>
         )
     }
+
     if (cumpleanosHoy.length === 0) {
         return (
             <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
@@ -74,6 +64,7 @@ export const CumpleanosHoyCard: React.FC = () => {
             </div>
         )
     }
+
     return (
         <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl shadow-md p-6 border-2 border-amber-200 hover:shadow-lg transition">
             {/* Header con animación */}
@@ -83,12 +74,14 @@ export const CumpleanosHoyCard: React.FC = () => {
                 </div>
                 <h3 className="text-lg font-bold text-amber-900">¡Cumpleaños de Hoy! 🎉</h3>
             </div>
+
             {/* Lista de cumpleañeros */}
             <div className="space-y-3">
                 {cumpleanosHoy.map((persona) => {
                     const edad = persona.fecha_nacimiento
                         ? new Date().getFullYear() - new Date(persona.fecha_nacimiento).getFullYear()
                         : null
+
                     return (
                         <div
                             key={persona.id}
