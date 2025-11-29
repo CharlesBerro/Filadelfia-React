@@ -1,9 +1,6 @@
 import React from 'react'
-import { Page, Text, View, Document, StyleSheet, Image, Font } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import { TransaccionCompleta } from '@/types/transacciones'
-
-// Registrar fuentes si es necesario (opcional, usando standard fonts por ahora)
-// Font.register({ family: 'Roboto', src: '...' });
 
 const styles = StyleSheet.create({
     page: {

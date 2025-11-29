@@ -1,0 +1,57 @@
+
+> filadelfia-react@0.0.0 build
+> tsc -b && vite build
+
+src/components/transacciones/TransaccionForm.tsx(4,19): error TS2304: Cannot find name 'TransaccionUpdate'.
+src/components/transacciones/TransaccionForm.tsx(5,22): error TS2304: Cannot find name 'TransaccionCreate'.
+src/components/transacciones/TransaccionForm.tsx(5,42): error TS2304: Cannot find name 'TransaccionUpdate'.
+src/components/transacciones/TransaccionForm.tsx(62,18): error TS2304: Cannot find name 'ArrowUpCircle'.
+src/components/transacciones/TransaccionForm.tsx(64,32): error TS2304: Cannot find name 'CheckCircle'.
+src/components/transacciones/TransaccionForm.tsx(72,18): error TS2304: Cannot find name 'ArrowDownCircle'.
+src/components/transacciones/TransaccionForm.tsx(74,31): error TS2304: Cannot find name 'CheckCircle'.
+src/components/transacciones/TransaccionForm.tsx(85,15): error TS2304: Cannot find name 'Persona'.
+src/components/transacciones/TransaccionForm.tsx(86,35): error TS2304: Cannot find name 'Persona'.
+src/components/transacciones/TransaccionForm.tsx(87,26): error TS2304: Cannot find name 'Persona'.
+src/components/transacciones/TransaccionForm.tsx(102,18): error TS2304: Cannot find name 'Search'.
+src/components/transacciones/TransaccionForm.tsx(104,22): error TS2304: Cannot find name 'Loader2'.
+src/components/transacciones/TransaccionForm.tsx(107,22): error TS2304: Cannot find name 'CheckCircle'.
+src/components/transacciones/TransaccionForm.tsx(134,26): error TS2304: Cannot find name 'XCircle'.
+src/components/transacciones/TransaccionForm.tsx(159,9): error TS2304: Cannot find name 'useForm'.
+src/components/transacciones/TransaccionForm.tsx(159,17): error TS2304: Cannot find name 'TransaccionCreate'.
+src/components/transacciones/TransaccionForm.tsx(173,41): error TS2304: Cannot find name 'useState'.
+src/components/transacciones/TransaccionForm.tsx(173,50): error TS2304: Cannot find name 'Categoria'.
+src/components/transacciones/TransaccionForm.tsx(174,43): error TS2304: Cannot find name 'useState'.
+src/components/transacciones/TransaccionForm.tsx(175,37): error TS2304: Cannot find name 'useState'.
+src/components/transacciones/TransaccionForm.tsx(175,46): error TS2304: Cannot find name 'Persona'.
+src/components/transacciones/TransaccionForm.tsx(176,55): error TS2304: Cannot find name 'useState'.
+src/components/transacciones/TransaccionForm.tsx(177,57): error TS2304: Cannot find name 'useState'.
+src/components/transacciones/TransaccionForm.tsx(178,53): error TS2304: Cannot find name 'useState'.
+src/components/transacciones/TransaccionForm.tsx(179,47): error TS2304: Cannot find name 'useState'.
+src/components/transacciones/TransaccionForm.tsx(180,59): error TS2304: Cannot find name 'useState'.
+src/components/transacciones/TransaccionForm.tsx(180,68): error TS2304: Cannot find name 'Persona'.
+src/components/transacciones/TransaccionForm.tsx(187,30): error TS2304: Cannot find name 'useCallback'.
+src/components/transacciones/TransaccionForm.tsx(190,43): error TS2304: Cannot find name 'supabase'.
+src/components/transacciones/TransaccionForm.tsx(200,66): error TS2304: Cannot find name 'Categoria'.
+src/components/transacciones/TransaccionForm.tsx(213,31): error TS2304: Cannot find name 'useCallback'.
+src/components/transacciones/TransaccionForm.tsx(216,43): error TS2304: Cannot find name 'supabase'.
+src/components/transacciones/TransaccionForm.tsx(230,27): error TS2304: Cannot find name 'useCallback'.
+src/components/transacciones/TransaccionForm.tsx(234,43): error TS2304: Cannot find name 'supabase'.
+src/components/transacciones/TransaccionForm.tsx(249,42): error TS2304: Cannot find name 'Persona'.
+src/components/transacciones/TransaccionForm.tsx(257,5): error TS2304: Cannot find name 'useEffect'.
+src/components/transacciones/TransaccionForm.tsx(261,5): error TS2304: Cannot find name 'useEffect'.
+src/components/transacciones/TransaccionForm.tsx(265,5): error TS2304: Cannot find name 'useEffect'.
+src/components/transacciones/TransaccionForm.tsx(290,43): error TS2304: Cannot find name 'TransaccionCreate'.
+src/components/transacciones/TransaccionForm.tsx(323,38): error TS2304: Cannot find name 'XCircle'.
+src/components/transacciones/TransaccionForm.tsx(344,38): error TS2304: Cannot find name 'XCircle'.
+src/components/transacciones/TransaccionForm.tsx(375,38): error TS2304: Cannot find name 'XCircle'.
+src/components/transacciones/TransaccionForm.tsx(392,38): error TS2304: Cannot find name 'Loader2'.
+src/components/transacciones/TransaccionForm.tsx(405,54): error TS7006: Parameter 'cat' implicitly has an 'any' type.
+src/components/transacciones/TransaccionForm.tsx(414,38): error TS2304: Cannot find name 'XCircle'.
+src/components/transacciones/TransaccionForm.tsx(445,38): error TS2304: Cannot find name 'Loader2'.
+src/components/transacciones/TransaccionForm.tsx(456,55): error TS7006: Parameter 'act' implicitly has an 'any' type.
+src/components/transacciones/TransaccionForm.tsx(504,26): error TS2304: Cannot find name 'Button'.
+src/components/transacciones/TransaccionForm.tsx(511,27): error TS2304: Cannot find name 'Button'.
+src/components/transacciones/TransaccionForm.tsx(512,26): error TS2304: Cannot find name 'Button'.
+src/components/transacciones/TransaccionForm.tsx(519,38): error TS2304: Cannot find name 'Loader2'.
+src/components/transacciones/TransaccionForm.tsx(525,27): error TS2304: Cannot find name 'Button'.
+src/components/ui/Modal.tsx(1,17): error TS6133: 'useEffect' is declared but its value is never read.

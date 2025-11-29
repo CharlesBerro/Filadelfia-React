@@ -8,7 +8,7 @@ interface UserFormProps {
         id: string
         full_name?: string
         email?: string
-        role: 'admin' | 'user' | 'contador'
+        role: 'admin' | 'usuario' | 'contador'
     } | null
     onSave: (data: any) => Promise<void>
     onCancel: () => void
@@ -19,7 +19,7 @@ export const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel, isLo
     const [fullName, setFullName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [role, setRole] = useState<'admin' | 'user' | 'contador'>('user')
+    const [role, setRole] = useState<'admin' | 'usuario' | 'contador'>('usuario')
 
     useEffect(() => {
         if (user) {
@@ -30,7 +30,7 @@ export const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel, isLo
             setFullName('')
             setEmail('')
             setPassword('')
-            setRole('user')
+            setRole('usuario')
         }
     }, [user])
 
@@ -107,7 +107,7 @@ export const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel, isLo
                         onChange={(e) => setRole(e.target.value as any)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none appearance-none bg-white"
                     >
-                        <option value="user">Usuario</option>
+                        <option value="usuario">Usuario</option>
                         <option value="contador">Contador</option>
                         <option value="admin">Administrador</option>
                     </select>

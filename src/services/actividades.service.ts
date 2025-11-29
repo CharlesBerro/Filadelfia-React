@@ -39,7 +39,7 @@ export class ActividadesService {
 
             // 2. Obtener rol del usuario desde el store
             const { user: authUser } = useAuthStore.getState()
-            const esAdmin = authUser?.rol === 'admin'
+            const esAdmin = authUser?.role === 'admin'
 
 
             // 3. Construir query según rol
@@ -86,7 +86,7 @@ export class ActividadesService {
 
             // Obtener rol
             const { user: authUser } = useAuthStore.getState()
-            const esAdmin = authUser?.rol === 'admin'
+            const esAdmin = authUser?.role === 'admin'
 
             // Construir query
             let query = supabase
@@ -208,7 +208,7 @@ export class ActividadesService {
 
             // Obtener rol
             const { user: authUser } = useAuthStore.getState()
-            const esAdmin = authUser?.rol === 'admin'
+            const esAdmin = authUser?.role === 'admin'
 
             // Validaciones de negocio
             if (updates.nombre !== undefined && updates.nombre.trim() === '') {
@@ -293,7 +293,7 @@ export class ActividadesService {
 
             // Obtener rol
             const { user: authUser } = useAuthStore.getState()
-            const esAdmin = authUser?.rol === 'admin'
+            const esAdmin = authUser?.role === 'admin'
 
             // Verificar si hay transacciones asociadas
             const { count } = await supabase

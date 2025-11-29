@@ -6,8 +6,9 @@ import { TransaccionForm } from '@/components/transacciones/TransaccionForm'
 import { TransaccionesService } from '@/services/transacciones.service'
 import { useTransaccionesStore } from '@/stores/transacciones.store'
 import { ArrowLeft, Receipt } from 'lucide-react'
-import type { TransaccionCreate } from '@/types/transacciones'
+import type { TransaccionCreate, TransaccionUpdate } from '@/types/transacciones'
 import { SavingOverlay } from '@/components/ui/SavingOverlay'
+
 /**
  * Página para registrar nueva transacción
  */
@@ -18,13 +19,14 @@ export const NuevaTransaccionPage: React.FC = () => {
     const [isSuccess, setIsSuccess] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const handleSubmit = async (data: TransaccionCreate) => {
+    const handleSubmit = async (data: TransaccionCreate | TransaccionUpdate) => {
         setIsLoading(true)
         setIsSuccess(false)
         setError(null)
 
         try {
-            const nuevaTransaccion = await TransaccionesService.crear(data)
+            // Cast data to TransaccionCreate as we are creating a new transaction
+            const nuevaTransaccion = await TransaccionesService.crear(data as TransaccionCreate)
             addTransaccion(nuevaTransaccion)
             setIsSuccess(true)
             setTimeout(() => {
@@ -86,7 +88,7 @@ export const NuevaTransaccionPage: React.FC = () => {
                     </div>
                 </div>
             </div>
-            {/* ← NUEVO: Overlay de guardado */}
+            {/* Overlay de guardado */}
             <SavingOverlay
                 isLoading={isLoading}
                 isSuccess={isSuccess}

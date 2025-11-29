@@ -1,15 +1,14 @@
 import React from 'react'
+import { X } from 'lucide-react'
 import { PDFViewer } from '@react-pdf/renderer'
-import { Modal } from '@/components/ui/Modal'
+import { Button } from '@/components/ui/Button'
 import { ComprobantePDF } from './ComprobantePDF'
 import { TransaccionCompleta } from '@/types/transacciones'
-import { Button } from '@/components/ui/Button'
-import { Download, X } from 'lucide-react'
 
 interface PDFPreviewModalProps {
     isOpen: boolean
     onClose: () => void
-    transaccion: TransaccionCompleta | null
+    transaccion?: TransaccionCompleta | null
 }
 
 export const PDFPreviewModal: React.FC<PDFPreviewModalProps> = ({ isOpen, onClose, transaccion }) => {

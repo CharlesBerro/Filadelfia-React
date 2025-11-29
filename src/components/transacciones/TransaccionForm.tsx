@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { useForm, UseFormRegister, UseFormWatch } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { Search, Loader2, ArrowUpCircle, ArrowDownCircle, CheckCircle, XCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/Button'
@@ -519,8 +519,7 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg hover:shadow-xl transition-all duration-300"
-                            style={{ background: 'linear-gradient(45deg, #10b981 0%, #059669 100%)' }}
+                            className="bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg hover:shadow-xl transition-all duration-300 btn-ingreso-active"
                         >
                             {isLoading ? (
                                 <span className="flex items-center">

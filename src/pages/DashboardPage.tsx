@@ -79,9 +79,9 @@ export const DashboardPage: React.FC = () => {
                     Tu Rol
                   </p>
                   <p className="text-lg sm:text-2xl font-bold text-green-600 mt-2 capitalize">
-                    {user?.rol === 'admin'
+                    {user?.role === 'admin'
                       ? 'Administrador'
-                      : user?.rol === 'contador'
+                      : user?.role === 'contador'
                         ? 'Contador'
                         : 'Usuario'}
                   </p>
@@ -108,8 +108,8 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
             </Card>
-
           </div>
+
           {/* Sección de Cumpleaños */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/*  Cumpleaños de Hoy */}

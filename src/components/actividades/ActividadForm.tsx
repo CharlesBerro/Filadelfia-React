@@ -1,5 +1,5 @@
 // src/components/actividades/ActividadForm.tsx
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import type { ActividadCreate } from '@/types'
 import { Button } from '@/components/ui/Button'

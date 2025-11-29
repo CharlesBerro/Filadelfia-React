@@ -1,20 +1,28 @@
-import React, { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Layout } from '@/components/layout/Layout'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Modal } from '@/components/ui/Modal'
+import { SavingOverlay } from '@/components/ui/SavingOverlay'
+import { UserForm } from '@/components/usuarios/UserForm'
+import { useAuthStore } from '@/stores/auth.store'
 import { supabase } from '@/lib/supabase'
 import { createClient } from '@supabase/supabase-js'
-import { useAuthStore } from '@/stores/auth.store'
-import { Users, Shield, Search, UserPlus, Edit, Trash2, AlertTriangle } from 'lucide-react'
-import { Input } from '@/components/ui/Input'
-import { Button } from '@/components/ui/Button'
-import { Modal } from '@/components/ui/Modal'
-import { UserForm } from '@/components/usuarios/UserForm'
-import { Layout } from '@/components/layout/Layout'
-import { SavingOverlay } from '@/components/ui/SavingOverlay'
+import {
+    Shield,
+    Users,
+    UserPlus,
+    Search,
+    Edit,
+    Trash2,
+    AlertTriangle
+} from 'lucide-react'
 
 interface UserProfile {
     id: string
     full_name: string
     email?: string
-    role: 'admin' | 'user' | 'contador'
+    role: 'admin' | 'usuario' | 'contador' // Fixed role type to match User interface
     created_at: string
 }
 
@@ -53,6 +61,7 @@ export const UsuariosPage = () => {
             if (error) throw error
             setUsers(data || [])
         } catch (error) {
+            console.error('Error fetching users:', error)
         } finally {
             setLoading(false)
         }
@@ -274,10 +283,10 @@ export const UsuariosPage = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin'
-                                                        ? 'bg-purple-100 text-purple-800'
-                                                        : user.role === 'contador'
-                                                            ? 'bg-blue-100 text-blue-800'
-                                                            : 'bg-green-100 text-green-800'
+                                                    ? 'bg-purple-100 text-purple-800'
+                                                    : user.role === 'contador'
+                                                        ? 'bg-blue-100 text-blue-800'
+                                                        : 'bg-green-100 text-green-800'
                                                     }`}>
                                                     {user.role === 'admin' ? 'Administrador' : user.role === 'contador' ? 'Contador' : 'Usuario'}
                                                 </span>

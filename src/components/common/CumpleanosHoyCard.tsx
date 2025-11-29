@@ -22,7 +22,7 @@ export const CumpleanosHoyCard: React.FC = () => {
                     const fechaStr = persona.fecha_nacimiento.includes('T')
                         ? persona.fecha_nacimiento.split('T')[0]
                         : persona.fecha_nacimiento
-                    const [anio, mes, dia] = fechaStr.split('-').map(Number)
+                    const [, mes, dia] = fechaStr.split('-').map(Number)
 
                     return dia === hoy.getDate() && (mes - 1) === hoy.getMonth()
                 })

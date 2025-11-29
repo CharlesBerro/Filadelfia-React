@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCategoriasStore } from '@/stores/categorias.store'
+import { CategoriasService } from '@/services/categorias.services'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
@@ -62,9 +63,11 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
     setLoading(true)
     try {
       if (categoria) {
-        await updateCategoria(categoria.id, formData)
+        await CategoriasService.actualizar(categoria.id, formData)
+        updateCategoria(categoria.id, formData)
       } else {
-        await addCategoria(formData)
+        const newCategoria = await CategoriasService.crear(formData)
+        addCategoria(newCategoria)
       }
 
       // Mostrar éxito
@@ -125,8 +128,8 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
               onClick={() => !categoria && setFormData({ ...formData, tipo: 'ingreso' })}
               disabled={!!categoria} // No permitir cambiar tipo al editar
               className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${formData.tipo === 'ingreso'
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-200 hover:border-green-200 text-gray-600'
+                ? 'border-green-500 bg-green-50 text-green-700'
+                : 'border-gray-200 hover:border-green-200 text-gray-600'
                 } ${categoria ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <TrendingUp className={`w-5 h-5 ${formData.tipo === 'ingreso' ? 'text-green-600' : 'text-gray-400'}`} />
@@ -138,8 +141,8 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
               onClick={() => !categoria && setFormData({ ...formData, tipo: 'egreso' })}
               disabled={!!categoria}
               className={`flex items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${formData.tipo === 'egreso'
-                  ? 'border-red-500 bg-red-50 text-red-700'
-                  : 'border-gray-200 hover:border-red-200 text-gray-600'
+                ? 'border-red-500 bg-red-50 text-red-700'
+                : 'border-gray-200 hover:border-red-200 text-gray-600'
                 } ${categoria ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <TrendingDown className={`w-5 h-5 ${formData.tipo === 'egreso' ? 'text-red-600' : 'text-gray-400'}`} />
@@ -160,6 +163,7 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
           </label>
           <Input
             id="nombre"
+            name="nombre"
             value={formData.nombre}
             onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
             placeholder="Ej: Diezmos, Ofrendas, Servicios Públicos..."
@@ -176,7 +180,7 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
           </label>
           <textarea
             id="descripcion"
-            value={formData.descripcion}
+            value={formData.descripcion || ''}
             onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
             rows={3}
@@ -203,7 +207,7 @@ export const CategoriaForm: React.FC<CategoriaFormProps> = ({
           >
             {loading ? (
               <div className="flex items-center gap-2">
-                <LoadingSpinner size="sm" color="white" />
+                <LoadingSpinner size="sm" className="text-white" />
                 <span>Guardando...</span>
               </div>
             ) : (
