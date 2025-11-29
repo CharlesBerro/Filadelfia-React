@@ -1,4 +1,3 @@
-// src/components/actividades/ActividadForm.tsx
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import type { ActividadCreate } from '@/types'
@@ -7,7 +6,7 @@ import { SavingOverlay } from '@/components/ui/SavingOverlay'
 import { Calendar, Target, FileText } from 'lucide-react'
 
 interface ActividadFormProps {
-    initialData?: Partial<ActividadCreate> & { id?: string }
+    initialData?: (Partial<ActividadCreate> & { id?: string }) | undefined
     onSubmit: (data: ActividadCreate) => Promise<void>
     onCancel: () => void
     isLoading?: boolean
