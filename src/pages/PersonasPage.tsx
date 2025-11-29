@@ -12,7 +12,7 @@ import type { Sede } from '@/types'
 
 export const PersonasPage: React.FC = () => {
   const navigate = useNavigate()
-  const { personas } = usePersonasStore()
+  const { personas, fetchPersonas } = usePersonasStore()
   const [sedes, setSedes] = useState<Sede[]>([])
 
   // Estado de Filtros Elevado
@@ -22,6 +22,11 @@ export const PersonasPage: React.FC = () => {
     bautizado: '',
     sede: '',
   })
+
+  // Cargar personas al montar
+  useEffect(() => {
+    fetchPersonas()
+  }, [fetchPersonas])
 
   // Cargar sedes al montar
   useEffect(() => {
