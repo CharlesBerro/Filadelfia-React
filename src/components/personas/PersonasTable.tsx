@@ -297,8 +297,11 @@ export const PersonasTable: React.FC<PersonasTableProps> = ({
               {currentPersonas.map((persona) => (
                 <tr key={persona.id} className="hover:bg-green-50/30 transition">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm overflow-hidden relative group">
+                    <div
+                      className="flex items-center cursor-pointer hover:bg-green-50/50 p-1 rounded-lg transition-colors"
+                      onClick={() => navigate(`/personas/${persona.id}`)}
+                    >
+                      <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm overflow-hidden relative group shrink-0">
                         {persona.url_foto ? (
                           <img
                             src={persona.url_foto}
@@ -412,7 +415,7 @@ export const PersonasTable: React.FC<PersonasTableProps> = ({
 
         {/* PAGINACIÓN */}
         {totalPages > 1 && (
-          <div className="bg-white px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
+          <div className="hidden sm:flex bg-white px-4 py-3 border-t border-gray-200 items-center justify-between sm:px-6">
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">

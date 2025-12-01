@@ -15,57 +15,42 @@ import type { Categoria, CategoriaCreate, CategoriaUpdate } from '@/types'
  */
 
 export class CategoriasService {
-  /**
-   * Verificar si el usuario es administrador
-   */
-  private static async verificarAdmin(userId: string) {
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single()
-
-    if (error || !profile) {
-      throw new Error('Error verificando permisos')
-    }
-
-    if (profile.role !== 'admin') {
-      throw new Error('No tienes permisos para realizar esta acción. Solo administradores.')
-    }
-  }
 
   /**
-   * Obtener todas las categorías del usuario actual
+   * Obtener todas las categorías
    * 
-   * ¿Por qué filtrar por user_id?
-   * - Cada usuario tiene sus propias categorías
-   * - Admin también tiene sus categorías (no ve las de otros)
-   * - RLS (Row Level Security) de Supabase refuerza esto
+   * - Admin: Ve todas las categorías
+   * - Usuario: Ve solo sus categorías
    */
   static async obtenerTodas(): Promise<Categoria[]> {
     try {
-
       // 1. Verificar autenticación
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('No autenticado')
 
-      if (!user) {
-        throw new Error('No autenticado')
-      }
+      // 2. Verificar rol
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
 
+      const isAdmin = profile?.role === 'admin'
 
-      // 2. Consultar categorías del usuario
-      const { data, error } = await supabase
+      // 3. Consultar categorías
+      let query = supabase
         .from('categorias')
         .select('*')
-        .eq('user_id', user.id)
         .order('nombre', { ascending: true })
 
-      if (error) {
-        throw error
+      // Si NO es admin, filtrar por usuario
+      if (!isAdmin) {
+        query = query.eq('user_id', user.id)
       }
 
+      const { data, error } = await query
+
+      if (error) throw error
 
       return (data || []) as Categoria[]
     } catch (error) {
@@ -75,31 +60,35 @@ export class CategoriasService {
 
   /**
    * Obtener categorías por tipo (ingreso o egreso)
-   * 
-   * Caso de uso:
-   * - Al crear una transacción de tipo "ingreso", mostrar solo categorías de ingreso
-   * - Evita confusiones (no puedes usar "Servicios públicos" en un ingreso)
    */
   static async obtenerPorTipo(tipo: 'ingreso' | 'egreso'): Promise<Categoria[]> {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('No autenticado')
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      // Verificar rol
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
 
-      if (!user) {
-        throw new Error('No autenticado')
-      }
+      const isAdmin = profile?.role === 'admin'
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('categorias')
         .select('*')
-        .eq('user_id', user.id)
         .eq('tipo', tipo)
         .order('nombre', { ascending: true })
 
-      if (error) throw error
+      // Si NO es admin, filtrar por usuario
+      if (!isAdmin) {
+        query = query.eq('user_id', user.id)
+      }
 
+      const { data, error } = await query
+
+      if (error) throw error
 
       return (data || []) as Categoria[]
     } catch (error) {
@@ -126,9 +115,6 @@ export class CategoriasService {
       if (!user) {
         throw new Error('No autenticado')
       }
-
-      // Verificar si es admin
-      await this.verificarAdmin(user.id)
 
       // 2. Validar que no exista una categoría con el mismo nombre
       const { data: existente } = await supabase
@@ -192,9 +178,6 @@ export class CategoriasService {
       if (!user) {
         throw new Error('No autenticado')
       }
-
-      // Verificar si es admin
-      await this.verificarAdmin(user.id)
 
       // Si se está actualizando el nombre, verificar que no exista
       if (updates.nombre) {

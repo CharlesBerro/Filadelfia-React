@@ -3,34 +3,42 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
 
-// Lazy loading de páginas para optimizar carga inicial (Code Splitting)
+// Lazy loading de páginas
 const HomePage = lazy(() => import('@/pages/HomePage').then(module => ({ default: module.HomePage })))
 const LoginPage = lazy(() => import('@/pages/LoginPage').then(module => ({ default: module.LoginPage })))
 const SignupPage = lazy(() => import('@/pages/SignupPage').then(module => ({ default: module.SignupPage })))
+const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPasswordPage').then(module => ({ default: module.ForgotPasswordPage })))
+const UpdatePasswordPage = lazy(() => import('@/pages/UpdatePasswordPage').then(module => ({ default: module.UpdatePasswordPage })))
+
 const DashboardPage = lazy(() => import('@/pages/DashboardPage').then(module => ({ default: module.DashboardPage })))
 const PersonasPage = lazy(() => import('@/pages/PersonasPage').then(module => ({ default: module.PersonasPage })))
 const NuevaPersonaPage = lazy(() => import('@/pages/NuevaPersonaPage').then(module => ({ default: module.NuevaPersonaPage })))
 const PersonaDetallePage = lazy(() => import('@/pages/PersonaDetallePage').then(module => ({ default: module.PersonaDetallePage })))
 const EditarPersonaPage = lazy(() => import('@/pages/EditarPersonaPage').then(module => ({ default: module.EditarPersonaPage })))
+
 const CategoriasPage = lazy(() => import('@/pages/CategoriasPage').then(module => ({ default: module.CategoriasPage })))
 const NuevaCategoriaPage = lazy(() => import('@/pages/NuevaCategoriaPage').then(module => ({ default: module.NuevaCategoriaPage })))
 const EditarCategoriaPage = lazy(() => import('@/pages/EditarCategoriaPage').then(module => ({ default: module.EditarCategoriaPage })))
+
 const ActividadesPage = lazy(() => import('@/pages/ActividadesPage').then(module => ({ default: module.ActividadesPage })))
 const NuevaActividadPage = lazy(() => import('@/pages/NuevaActividadPage').then(module => ({ default: module.NuevaActividadPage })))
-const EditarActividadPage = lazy(() => import('@/pages/EditarActividadPage').then(module => ({ default: module.EditarActividadPage })))
 const ActividadDetallePage = lazy(() => import('@/pages/ActividadDetallePage').then(module => ({ default: module.ActividadDetallePage })))
+const EditarActividadPage = lazy(() => import('@/pages/EditarActividadPage').then(module => ({ default: module.EditarActividadPage })))
+
 const TransaccionesPage = lazy(() => import('@/pages/TransaccionesPage').then(module => ({ default: module.TransaccionesPage })))
 const NuevaTransaccionPage = lazy(() => import('@/pages/NuevaTransaccionPage').then(module => ({ default: module.NuevaTransaccionPage })))
-const EditarTransaccionPage = lazy(() => import('@/pages/EditarTransaccionPage').then(module => ({ default: module.EditarTransaccionPage })))
 const TransaccionDetallePage = lazy(() => import('@/pages/TransaccionDetallePage').then(module => ({ default: module.TransaccionDetallePage })))
+const EditarTransaccionPage = lazy(() => import('@/pages/EditarTransaccionPage').then(module => ({ default: module.EditarTransaccionPage })))
+
 const ReportesPage = lazy(() => import('@/pages/ReportesPage').then(module => ({ default: module.ReportesPage })))
 const UsuariosPage = lazy(() => import('@/pages/UsuariosPage').then(module => ({ default: module.UsuariosPage })))
+const SedesPage = lazy(() => import('@/pages/SedesPage').then(module => ({ default: module.SedesPage })))
 
 export const AppRoutes: React.FC = () => {
   return (
     <BrowserRouter>
       <Suspense fallback={
-        <div className="h-screen w-full flex items-center justify-center bg-gray-50">
+        <div className="flex items-center justify-center h-screen">
           <LoadingSpinner size="lg" text="Cargando aplicación..." />
         </div>
       }>
@@ -39,6 +47,8 @@ export const AppRoutes: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/update-password" element={<UpdatePasswordPage />} />
 
           {/* Protegidas - Dashboard */}
           <Route
@@ -197,8 +207,16 @@ export const AppRoutes: React.FC = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/sedes"
+            element={
+              <ProtectedRoute>
+                <SedesPage />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Redirección por defecto */}
+          {/* Redirect catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { SavingOverlay } from '@/components/ui/SavingOverlay'
 import { UserForm } from '@/components/usuarios/UserForm'
+import { UpdateEmailModal } from '@/components/usuarios/UpdateEmailModal'
 import { useAuthStore } from '@/stores/auth.store'
 import { supabase } from '@/lib/supabase'
 import { createClient } from '@supabase/supabase-js'
+import { AuthService } from '@/services/auth.service'
 import {
     Shield,
     Users,
@@ -15,15 +17,22 @@ import {
     Search,
     Edit,
     Trash2,
-    AlertTriangle
+    AlertTriangle,
+    KeyRound,
+    Mail
 } from 'lucide-react'
 
 interface UserProfile {
     id: string
     full_name: string
     email?: string
-    role: 'admin' | 'usuario' | 'contador' // Fixed role type to match User interface
+    role: 'admin' | 'usuario' | 'contador'
     created_at: string
+    sede_id?: string
+    sedes?: {
+        nombre_sede: string
+        lider: string
+    }
 }
 
 export const UsuariosPage = () => {
@@ -46,6 +55,13 @@ export const UsuariosPage = () => {
     const [isDeleting, setIsDeleting] = useState(false)
     const [deleteSuccess, setDeleteSuccess] = useState(false)
 
+    // Password Reset State
+    const [isResetting, setIsResetting] = useState(false)
+
+    const [isUpdateEmailModalOpen, setIsUpdateEmailModalOpen] = useState(false)
+    const [emailUpdateUser, setEmailUpdateUser] = useState<UserProfile | null>(null)
+    const [isUpdatingEmail, setIsUpdatingEmail] = useState(false)
+
     useEffect(() => {
         fetchUsers()
     }, [])
@@ -55,7 +71,7 @@ export const UsuariosPage = () => {
             setLoading(true)
             const { data, error } = await supabase
                 .from('profiles')
-                .select('*')
+                .select('*, sedes(nombre_sede, lider)')
                 .order('created_at', { ascending: false })
 
             if (error) throw error
@@ -91,7 +107,8 @@ export const UsuariosPage = () => {
                     .from('profiles')
                     .update({
                         full_name: formData.full_name,
-                        role: formData.role
+                        role: formData.role,
+                        sede_id: formData.sede_id
                     })
                     .eq('id', editingUser.id)
 
@@ -121,7 +138,8 @@ export const UsuariosPage = () => {
                             id: data.user.id,
                             full_name: formData.full_name,
                             email: formData.email,
-                            role: formData.role
+                            role: formData.role,
+                            sede_id: formData.sede_id
                         })
 
                     if (profileError) {
@@ -144,6 +162,20 @@ export const UsuariosPage = () => {
         } catch (error: any) {
             alert('Error: ' + error.message)
             setIsSaving(false)
+        }
+    }
+
+    const handleResetPassword = async (email: string) => {
+        if (!confirm(`¿Enviar correo de restablecimiento de contraseña a ${email}?`)) return
+
+        try {
+            setIsResetting(true)
+            await AuthService.resetPasswordForEmail(email)
+            alert(`Correo de restablecimiento enviado a ${email}`)
+        } catch (error: any) {
+            alert('Error al enviar correo: ' + error.message)
+        } finally {
+            setIsResetting(false)
         }
     }
 
@@ -193,10 +225,35 @@ export const UsuariosPage = () => {
         setIsModalOpen(true)
     }
 
+    const openUpdateEmailModal = (user: UserProfile) => {
+        setEmailUpdateUser(user)
+        setIsUpdateEmailModalOpen(true)
+    }
+
+    const handleUpdateEmail = async (newEmail: string) => {
+        if (!emailUpdateUser) return
+
+        try {
+            setIsUpdatingEmail(true)
+            await AuthService.adminUpdateEmail(emailUpdateUser.id, newEmail)
+
+            alert('Correo actualizado exitosamente')
+            setIsUpdateEmailModalOpen(false)
+            setEmailUpdateUser(null)
+            fetchUsers()
+        } catch (error: any) {
+            console.error('Error updating email:', error)
+            alert('Error al actualizar correo: ' + (error.message || 'Error desconocido'))
+        } finally {
+            setIsUpdatingEmail(false)
+        }
+    }
+
     const filteredUsers = users.filter(u =>
         u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.role?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.sedes?.nombre_sede?.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
     if (currentUser?.role !== 'admin') {
@@ -250,6 +307,7 @@ export const UsuariosPage = () => {
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sede</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Registro</th>
                                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                 </tr>
@@ -257,13 +315,13 @@ export const UsuariosPage = () => {
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                                             Cargando usuarios...
                                         </td>
                                     </tr>
                                 ) : filteredUsers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                                             No se encontraron usuarios
                                         </td>
                                     </tr>
@@ -291,11 +349,36 @@ export const UsuariosPage = () => {
                                                     {user.role === 'admin' ? 'Administrador' : user.role === 'contador' ? 'Contador' : 'Usuario'}
                                                 </span>
                                             </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {user.sedes ? (
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-medium text-gray-900">{user.sedes.nombre_sede}</span>
+                                                        <span className="text-xs text-gray-500">Líder: {user.sedes.lider}</span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-sm text-gray-400 italic">Sin sede asignada</span>
+                                                )}
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {new Date(user.created_at).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => openUpdateEmailModal(user)}
+                                                        className="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded"
+                                                        title="Cambiar Correo"
+                                                    >
+                                                        <Mail className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => user.email && handleResetPassword(user.email)}
+                                                        className="text-yellow-600 hover:text-yellow-900 p-1 hover:bg-yellow-50 rounded"
+                                                        title="Enviar Reset Password"
+                                                        disabled={isResetting}
+                                                    >
+                                                        <KeyRound className="w-4 h-4" />
+                                                    </button>
                                                     <button
                                                         onClick={() => openEditModal(user)}
                                                         className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
@@ -334,6 +417,15 @@ export const UsuariosPage = () => {
                         isLoading={isSaving}
                     />
                 </Modal>
+
+                {/* Update Email Modal */}
+                <UpdateEmailModal
+                    isOpen={isUpdateEmailModalOpen}
+                    onClose={() => setIsUpdateEmailModalOpen(false)}
+                    onConfirm={handleUpdateEmail}
+                    currentEmail={emailUpdateUser?.email || ''}
+                    isLoading={isUpdatingEmail}
+                />
 
                 {/* Delete Confirmation Modal */}
                 <Modal

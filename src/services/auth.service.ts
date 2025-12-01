@@ -158,4 +158,67 @@ export class AuthService {
       return null
     }
   }
+
+  /**
+   * Enviar correo de recuperación de contraseña
+   */
+  static async resetPasswordForEmail(email: string) {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/update-password`,
+      })
+      if (error) throw error
+      return true
+    } catch (error: any) {
+      throw error
+    }
+  }
+
+  /**
+   * Actualizar contraseña (estando logueado o tras recuperación)
+   */
+  static async updatePassword(newPassword: string) {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+      if (error) throw error
+      return true
+    } catch (error: any) {
+      throw error
+    }
+  }
+
+  /**
+   * Actualizar email del usuario
+   */
+  static async updateEmail(newEmail: string) {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        email: newEmail
+      })
+      if (error) throw error
+      return true
+    } catch (error: any) {
+      throw error
+    }
+  }
+
+  /**
+   * Actualizar email de otro usuario (Admin)
+   * Requiere función RPC 'admin_update_user_email'
+   */
+  static async adminUpdateEmail(userId: string, newEmail: string) {
+    try {
+      const { error } = await supabase.rpc('admin_update_user_email', {
+        target_user_id: userId,
+        new_email: newEmail
+      })
+
+      if (error) throw error
+      return true
+    } catch (error: any) {
+      throw error
+    }
+  }
 }

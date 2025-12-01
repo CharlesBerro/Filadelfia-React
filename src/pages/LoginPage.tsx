@@ -150,16 +150,31 @@ export const LoginPage: React.FC = () => {
                 required
               />
 
-              <Input
-                label="Contraseña"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                error={errors.password}
-                required
-              />
+              <div>
+                <Input
+                  label="Contraseña"
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  error={errors.password}
+                  required
+                />
+                <div className="flex justify-end mt-1">
+                  <div className="flex items-center">
+                    <input
+                      id="remember-me"
+                      name="remember-me"
+                      type="checkbox"
+                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                      Recordarme
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <Button

@@ -180,8 +180,9 @@ export interface PersonaEscala {
 export interface Sede {
   id: string
   nombre_sede: string
-  direccion?: string | null
-  telefono?: string | null
+  direccion_sede?: string | null
+  telefono_sede?: string | null
   lider?: string | null
+  codigo?: string | null
   created_at: string
 }
