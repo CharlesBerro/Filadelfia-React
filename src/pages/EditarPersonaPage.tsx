@@ -133,6 +133,7 @@ export const EditarPersonaPage: React.FC = () => {
         navigate(`/personas/${id}`)
       }, 1500)
     } catch (err: any) {
+      console.error('Error updating persona:', err)
       setError(err.message || 'Error al actualizar persona')
     } finally {
       setSaving(false)

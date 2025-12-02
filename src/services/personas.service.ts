@@ -136,9 +136,10 @@ export class PersonasService {
         .from('persona')
         .select('*')
         .eq('id', id)
-        .single()
+        .maybeSingle()
 
       if (error) throw error
+      if (!data) throw new Error('Persona no encontrada')
       return data as Persona
     } catch (error: any) {
       throw error
@@ -203,11 +204,13 @@ export class PersonasService {
         .from('persona')
         .insert(datosCompletos)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) {
         throw new Error(error.message)
       }
+
+      if (!data) throw new Error('Error al crear persona')
 
 
       return data as Persona
@@ -254,6 +257,16 @@ export class PersonasService {
    */
   static async eliminar(id: string) {
     try {
+      // Primero obtener la persona para eliminar su foto de Storage
+      const persona = await this.obtenerPorId(id)
+
+      // Eliminar foto de Storage si existe
+      if (persona.url_foto) {
+        const { StorageService } = await import('./storage.service')
+        await StorageService.deleteFile(persona.url_foto)
+      }
+
+      // Eliminar registro de la BD
       const { error } = await supabase
         .from('persona')
         .delete()

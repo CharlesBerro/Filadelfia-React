@@ -75,6 +75,20 @@ export const usePersonasStore = create<PersonasStore>()(
     }),
     {
       name: 'personas-storage',
+      version: 2, // Incrementar versión para forzar migración
+      migrate: (persistedState: any, version: number) => {
+        if (version < 2) {
+          // Limpiar fotos Base64 del store (ya no las necesitamos)
+          if (persistedState.personas) {
+            persistedState.personas = persistedState.personas.map((p: any) => ({
+              ...p,
+              // Eliminar fotos Base64, mantener URLs de Storage
+              url_foto: p.url_foto?.startsWith('data:') ? null : p.url_foto
+            }))
+          }
+        }
+        return persistedState
+      }
     }
   )
 )

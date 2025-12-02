@@ -33,7 +33,8 @@ export class CategoriasService {
         .from('profiles')
         .select('role')
         .eq('id', user.id)
-        .single()
+        .limit(1)
+        .maybeSingle()
 
       const isAdmin = profile?.role === 'admin'
 
@@ -71,7 +72,8 @@ export class CategoriasService {
         .from('profiles')
         .select('role')
         .eq('id', user.id)
-        .single()
+        .limit(1)
+        .maybeSingle()
 
       const isAdmin = profile?.role === 'admin'
 

@@ -2,32 +2,36 @@
 import React, { useState } from 'react'
 import { Camera, X, Upload } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
+import { StorageService } from '@/services/storage.service'
+import { supabase } from '@/lib/supabase'
 
 /**
- * Componente para subir foto de perfil
+ * Componente para subir foto de perfil a Supabase Storage
  * 
  * ¿Cómo funciona?
  * 1. Usuario selecciona imagen
- * 2. Se lee el archivo con FileReader
- * 3. Se convierte a base64 (texto)
- * 4. Se guarda la URL en el estado
+ * 2. Se comprime si es > 1MB
+ * 3. Se convierte a WebP (85% calidad)
+ * 4. Se sube a Supabase Storage
+ * 5. Se retorna la URL pública
  * 
- * ¿Por qué base64?
- * - Podemos guardar la imagen directamente en la BD
- * - No necesitamos servidor de archivos (por ahora)
- * - Fácil de implementar
- * 
- * NOTA: En producción, lo ideal es usar Supabase Storage
+ * Ventajas vs Base64:
+ * - No llena localStorage
+ * - Más rápido (CDN)
+ * - Mejor compresión (WebP)
+ * - Escalable
  */
 
 interface FotoUploaderProps {
   value: string | null
   onChange: (url: string | null) => void
+  personaId?: string // Opcional: ID de la persona (si ya existe)
 }
 
 export const FotoUploader: React.FC<FotoUploaderProps> = ({
   value,
   onChange,
+  personaId
 }) => {
   const [loading, setLoading] = useState(false)
 
@@ -53,13 +57,12 @@ export const FotoUploader: React.FC<FotoUploaderProps> = ({
         fileType: file.type as string
       }
 
-      // Comprimir imagen
-      let fileToProcess = file
+      // Comprimir imagen si es mayor a 1MB
+      let fileToUpload = file
 
-      // Solo comprimir si es mayor a 1MB
       if (file.size > 1024 * 1024) {
         try {
-          fileToProcess = await imageCompression(file, options)
+          fileToUpload = await imageCompression(file, options)
         } catch (error) {
           console.error('Error en compresión, usando original:', error)
           // Si falla la compresión, intentamos usar la original si no es gigante
@@ -69,30 +72,41 @@ export const FotoUploader: React.FC<FotoUploaderProps> = ({
         }
       }
 
-      // Leer el archivo (comprimido o original) como base64
-      const reader = new FileReader()
-
-      reader.onload = (event) => {
-        const base64 = event.target?.result as string
-        onChange(base64)
-        setLoading(false)
+      // Obtener usuario actual
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('No autenticado')
       }
 
-      reader.onerror = () => {
-        alert('Error al leer la imagen')
-        setLoading(false)
-      }
+      // Subir a Supabase Storage (reemplaza foto anterior si existe)
+      const publicUrl = await StorageService.replacePersonaFoto(
+        value, // URL anterior (se eliminará)
+        fileToUpload,
+        user.id,
+        personaId
+      )
 
-      reader.readAsDataURL(fileToProcess)
+      onChange(publicUrl)
+      setLoading(false)
     } catch (error: any) {
-      console.error('Error processing image:', error)
-      alert(error.message || 'Error al procesar la imagen')
+      console.error('Error uploading image:', error)
+      alert(error.message || 'Error al subir la imagen')
       setLoading(false)
     }
   }
 
-  const handleRemove = () => {
-    onChange(null)
+  const handleRemove = async () => {
+    if (!value) return
+
+    try {
+      setLoading(true)
+      await StorageService.deleteFile(value)
+      onChange(null)
+    } catch (error) {
+      console.error('Error removing image:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -117,7 +131,7 @@ export const FotoUploader: React.FC<FotoUploaderProps> = ({
           </div>
 
           {/* Botón para quitar foto */}
-          {value && (
+          {value && !loading && (
             <button
               type="button"
               onClick={handleRemove}
@@ -132,7 +146,7 @@ export const FotoUploader: React.FC<FotoUploaderProps> = ({
         <div>
           <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition">
             <Upload className="w-4 h-4" />
-            <span>{loading ? 'Comprimiendo...' : 'Subir Foto'}</span>
+            <span>{loading ? 'Subiendo...' : 'Subir Foto'}</span>
             <input
               type="file"
               accept="image/*"
@@ -143,6 +157,9 @@ export const FotoUploader: React.FC<FotoUploaderProps> = ({
           </label>
           <p className="text-xs text-gray-500 mt-2">
             Máximo 2MB • JPG, PNG o GIF
+          </p>
+          <p className="text-xs text-gray-400">
+            Se convertirá a WebP automáticamente
           </p>
         </div>
       </div>

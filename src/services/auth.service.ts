@@ -31,7 +31,8 @@ export class AuthService {
           sedes:sede_id(nombre_sede, lider)
         `)
         .eq('id', data.user.id)
-        .single()
+        .limit(1)
+        .maybeSingle()
 
       if (profileError) {
         throw new Error('Error obteniendo perfil: ' + profileError.message)
@@ -150,7 +151,8 @@ export class AuthService {
         .from('users')
         .select('*')
         .eq('id', userId)
-        .single()
+        .limit(1)
+        .maybeSingle()
 
       if (error) throw error
       return data
