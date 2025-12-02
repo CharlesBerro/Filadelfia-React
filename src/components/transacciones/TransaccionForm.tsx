@@ -135,7 +135,7 @@ const PersonaSearchInput: React.FC<{
             )}
 
             {/* Mensaje cuando no hay resultados */}
-            {!searchingPersona && personaSearch.trim().length >= 3 && personas.length === 0 && (
+            {!searchingPersona && personaSearch.trim().length >= 3 && personas.length === 0 && !personaSeleccionada && (
                 <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 fade-in">
                     <p className="text-sm text-gray-600 text-center flex items-center justify-center">
                         <XCircle className="w-4 h-4 mr-2 text-red-500" />
@@ -189,6 +189,15 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
     // Watch tipo para filtrar categorías
     const tipoSeleccionado = watch('tipo')
     const montoValue = watch('monto')
+
+    // Manejador para cambios en el input de búsqueda
+    const handleSearchChange = (value: string) => {
+        setPersonaSearch(value)
+        if (personaSeleccionada) {
+            setPersonaSeleccionada(null)
+            setValue('persona_id', '')
+        }
+    }
 
     // Lógica de carga y búsqueda (Misma que el original)
     const cargarCategorias = useCallback(async () => {
@@ -277,12 +286,18 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
             return
         }
 
+        // Si ya hay una persona seleccionada y el texto coincide, no buscar
+        if (personaSeleccionada) {
+            const fullName = `${personaSeleccionada.nombres} ${personaSeleccionada.primer_apellido} ${personaSeleccionada.segundo_apellido || ''}`.trim()
+            if (personaSearch === fullName) return
+        }
+
         const timer = setTimeout(() => {
             buscarPersona()
         }, 1000) // 1 segundo de debounce
 
         return () => clearTimeout(timer)
-    }, [personaSearch, buscarPersona])
+    }, [personaSearch, buscarPersona, personaSeleccionada])
 
     // Función de formato de moneda (Misma que el original)
     const formatCurrency = (value: number) => {
@@ -433,7 +448,7 @@ export const TransaccionForm: React.FC<TransaccionFormProps> = ({
                             </label>
                             <PersonaSearchInput
                                 personaSearch={personaSearch}
-                                setPersonaSearch={setPersonaSearch}
+                                setPersonaSearch={handleSearchChange}
                                 searchingPersona={searchingPersona}
                                 personas={personas}
                                 seleccionarPersona={seleccionarPersona}

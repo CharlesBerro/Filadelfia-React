@@ -1,6 +1,7 @@
 // src/components/ui/FotoUploader.tsx
 import React, { useState } from 'react'
 import { Camera, X, Upload } from 'lucide-react'
+import imageCompression from 'browser-image-compression'
 
 /**
  * Componente para subir foto de perfil
@@ -32,7 +33,7 @@ export const FotoUploader: React.FC<FotoUploaderProps> = ({
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    
+
     if (!file) return
 
     // Validar que sea imagen
@@ -41,18 +42,36 @@ export const FotoUploader: React.FC<FotoUploaderProps> = ({
       return
     }
 
-    // Validar tamaño (máximo 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      alert('La imagen no debe superar 2MB')
-      return
-    }
-
     setLoading(true)
 
     try {
-      // Leer el archivo como base64
+      // Opciones de compresión
+      const options = {
+        maxSizeMB: 1,          // Máximo 1MB
+        maxWidthOrHeight: 1920, // Máxima resolución
+        useWebWorker: true,
+        fileType: file.type as string
+      }
+
+      // Comprimir imagen
+      let fileToProcess = file
+
+      // Solo comprimir si es mayor a 1MB
+      if (file.size > 1024 * 1024) {
+        try {
+          fileToProcess = await imageCompression(file, options)
+        } catch (error) {
+          console.error('Error en compresión, usando original:', error)
+          // Si falla la compresión, intentamos usar la original si no es gigante
+          if (file.size > 5 * 1024 * 1024) {
+            throw new Error('La imagen es demasiado grande y no se pudo comprimir')
+          }
+        }
+      }
+
+      // Leer el archivo (comprimido o original) como base64
       const reader = new FileReader()
-      
+
       reader.onload = (event) => {
         const base64 = event.target?.result as string
         onChange(base64)
@@ -64,9 +83,10 @@ export const FotoUploader: React.FC<FotoUploaderProps> = ({
         setLoading(false)
       }
 
-      reader.readAsDataURL(file)
-    } catch (error) {
-      alert('Error al procesar la imagen')
+      reader.readAsDataURL(fileToProcess)
+    } catch (error: any) {
+      console.error('Error processing image:', error)
+      alert(error.message || 'Error al procesar la imagen')
       setLoading(false)
     }
   }
@@ -112,7 +132,7 @@ export const FotoUploader: React.FC<FotoUploaderProps> = ({
         <div>
           <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition">
             <Upload className="w-4 h-4" />
-            <span>{loading ? 'Cargando...' : 'Subir Foto'}</span>
+            <span>{loading ? 'Comprimiendo...' : 'Subir Foto'}</span>
             <input
               type="file"
               accept="image/*"
