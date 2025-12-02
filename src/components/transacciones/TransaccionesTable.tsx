@@ -139,7 +139,8 @@ export const TransaccionesTable: React.FC<TransaccionesTableProps> = ({ onViewRe
     return (
         <>
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
+                {/* Vista Desktop - Tabla */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full min-w-max text-sm">
                         <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
@@ -186,39 +187,26 @@ export const TransaccionesTable: React.FC<TransaccionesTableProps> = ({ onViewRe
                                         className="hover:bg-gray-50 transition-colors cursor-pointer"
                                         onClick={() => navigate(`/transacciones/${transaccion.id}`)}
                                     >
-                                        {/* N° Transacción */}
                                         <td className="px-3 py-2">
                                             <p className="font-mono font-semibold text-gray-900">
                                                 {transaccion.numero_transaccion}
                                             </p>
                                         </td>
-
-                                        {/* Fecha */}
                                         <td className="px-3 py-2">
                                             <p className="text-gray-900">{formatDate(transaccion.fecha)}</p>
                                         </td>
-
-                                        {/* Monto */}
                                         <td className="px-3 py-2">
                                             <p className={`font-semibold ${transaccion.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600'}`}>
                                                 {formatCurrency(transaccion.monto)}
                                             </p>
                                         </td>
-
-                                        {/* Tipo */}
                                         <td className="px-3 py-2">{getTipoBadge(transaccion.tipo)}</td>
-
-                                        {/* Categoría */}
                                         <td className="px-3 py-2">
                                             <p className="text-gray-900">{transaccion.categoria?.nombre || '-'}</p>
                                         </td>
-
-                                        {/* Actividad */}
                                         <td className="px-3 py-2">
                                             <p className="text-gray-900">{transaccion.actividad?.nombre || '-'}</p>
                                         </td>
-
-                                        {/* Persona */}
                                         <td className="px-3 py-2">
                                             {transaccion.persona ? (
                                                 <p className="text-gray-900">
@@ -228,18 +216,12 @@ export const TransaccionesTable: React.FC<TransaccionesTableProps> = ({ onViewRe
                                                 <p className="text-gray-500">-</p>
                                             )}
                                         </td>
-
-                                        {/* Descripción */}
                                         <td className="px-3 py-2">
                                             <p className="text-gray-600 truncate max-w-xs">
                                                 {transaccion.descripcion || '-'}
                                             </p>
                                         </td>
-
-                                        {/* Estado */}
                                         <td className="px-3 py-2">{getEstadoBadge(transaccion.estado)}</td>
-
-                                        {/* Acciones */}
                                         <td className="px-3 py-2">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
@@ -301,24 +283,140 @@ export const TransaccionesTable: React.FC<TransaccionesTableProps> = ({ onViewRe
                     </table>
                 </div>
 
+                {/* Vista Mobile - Cards Compactas en Grid 2 Columnas */}
+                <div className="md:hidden p-3 space-y-3">
+                    {transaccionesPaginadas.map((transaccion) => {
+                        const puedeEditar = user?.role === 'admin' || transaccion.user_id === user?.id
+                        const puedeAnular = puedeEditar && transaccion.estado === 'activa'
+
+                        return (
+                            <div
+                                key={transaccion.id}
+                                onClick={() => navigate(`/transacciones/${transaccion.id}`)}
+                                className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm active:shadow-md transition-shadow"
+                            >
+                                {/* Header: N° y Monto */}
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className="flex-1">
+                                        <p className="text-xs text-gray-500 font-medium">N° {transaccion.numero_transaccion}</p>
+                                        <p className={`text-lg font-bold ${transaccion.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600'}`}>
+                                            {formatCurrency(transaccion.monto)}
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-1">
+                                        {getTipoBadge(transaccion.tipo)}
+                                        {getEstadoBadge(transaccion.estado)}
+                                    </div>
+                                </div>
+
+                                {/* Grid 2 Columnas - Info Compacta */}
+                                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs mb-2">
+                                    <div>
+                                        <p className="text-gray-500">Fecha</p>
+                                        <p className="text-gray-900 font-medium">{formatDate(transaccion.fecha)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-gray-500">Categoría</p>
+                                        <p className="text-gray-900 font-medium truncate">{transaccion.categoria?.nombre || '-'}</p>
+                                    </div>
+                                    {transaccion.actividad && (
+                                        <div className="col-span-2">
+                                            <p className="text-gray-500">Actividad</p>
+                                            <p className="text-gray-900 font-medium truncate">{transaccion.actividad.nombre}</p>
+                                        </div>
+                                    )}
+                                    {transaccion.persona && (
+                                        <div className="col-span-2">
+                                            <p className="text-gray-500">Persona</p>
+                                            <p className="text-gray-900 font-medium truncate">
+                                                {transaccion.persona.nombres} {transaccion.persona.primer_apellido}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {transaccion.descripcion && (
+                                        <div className="col-span-2">
+                                            <p className="text-gray-500">Descripción</p>
+                                            <p className="text-gray-900 text-xs line-clamp-2">{transaccion.descripcion}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Acciones */}
+                                <div className="flex items-center gap-1.5 pt-2 border-t border-gray-100">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            navigate(`/transacciones/${transaccion.id}`)
+                                        }}
+                                        className="flex-1 px-2 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
+                                    >
+                                        <Eye className="w-3.5 h-3.5" />
+                                        Ver
+                                    </button>
+
+                                    {onViewReceipt && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                onViewReceipt(transaccion)
+                                            }}
+                                            className="flex-1 px-2 py-1.5 text-xs font-medium text-purple-600 bg-purple-50 rounded hover:bg-purple-100 transition-colors flex items-center justify-center gap-1"
+                                        >
+                                            <Receipt className="w-3.5 h-3.5" />
+                                            PDF
+                                        </button>
+                                    )}
+
+                                    {puedeEditar && transaccion.estado === 'activa' && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                navigate(`/transacciones/${transaccion.id}/editar`)
+                                            }}
+                                            className="flex-1 px-2 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 rounded hover:bg-gray-100 transition-colors flex items-center justify-center gap-1"
+                                        >
+                                            <Edit2 className="w-3.5 h-3.5" />
+                                            Editar
+                                        </button>
+                                    )}
+
+                                    {puedeAnular && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                abrirModalAnular(transaccion)
+                                            }}
+                                            disabled={anulandoId === transaccion.id}
+                                            className="flex-1 px-2 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                                        >
+                                            <XCircle className="w-3.5 h-3.5" />
+                                            Anular
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+
                 {/* Paginación */}
                 {totalPaginas > 1 && (
-                    <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                        <p className="text-sm text-gray-600">
-                            Mostrando {indiceInicio + 1} a {Math.min(indiceFin, transacciones.length)} de {transacciones.length} transacciones
+                    <div className="px-4 py-3 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <p className="text-xs sm:text-sm text-gray-600">
+                            {indiceInicio + 1}-{Math.min(indiceFin, transacciones.length)} de {transacciones.length}
                         </p>
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setPaginaActual(p => Math.max(1, p - 1))}
                                 disabled={paginaActual === 1}
-                                className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Anterior
                             </button>
                             <button
                                 onClick={() => setPaginaActual(p => Math.min(totalPaginas, p + 1))}
                                 disabled={paginaActual === totalPaginas}
-                                className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Siguiente
                             </button>

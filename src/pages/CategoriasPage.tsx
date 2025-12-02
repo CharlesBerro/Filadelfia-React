@@ -6,6 +6,7 @@ import { CategoriasTable } from '@/components/categorias/CategoriasTable'
 import { CategoriasStats } from '@/components/categorias/CategoriasStats'
 import { CategoriasService } from '@/services/categorias.services'
 import { useCategoriasStore } from '@/stores/categorias.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Tag, Plus } from 'lucide-react'
@@ -16,13 +17,16 @@ import { Tag, Plus } from 'lucide-react'
  * Muestra:
  * - Estadísticas (cards con totales)
  * - Tabla de categorías
- * - Botón para crear nueva categoría
+ * - Botón para crear nueva categoría (solo admin)
  */
 
 export const CategoriasPage: React.FC = () => {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const { setCategorias, setLoading, setError } = useCategoriasStore()
   const [loadingData, setLoadingData] = useState(true)
+
+  const isAdmin = user?.role === 'admin'
 
   // Cargar categorías al montar el componente
   useEffect(() => {
@@ -71,10 +75,13 @@ export const CategoriasPage: React.FC = () => {
               </div>
             </div>
 
-            <Button onClick={() => navigate('/categorias/nueva')} variant="primary">
-              <Plus className="w-5 h-5" />
-              Nueva Categoría
-            </Button>
+            {/* Solo admin puede crear categorías */}
+            {isAdmin && (
+              <Button onClick={() => navigate('/categorias/nueva')} variant="primary">
+                <Plus className="w-5 h-5" />
+                Nueva Categoría
+              </Button>
+            )}
           </div>
 
           {/* Estadísticas */}

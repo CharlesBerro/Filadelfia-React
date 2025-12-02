@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CategoriasService } from '@/services/categorias.services'
 import { useCategoriasStore } from '@/stores/categorias.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { Edit2, Trash2, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react'
 import type { Categoria } from '@/types'
@@ -13,17 +14,15 @@ import type { Categoria } from '@/types'
  * ¿Qué muestra?
  * - Lista de todas las categorías del usuario
  * - Filtro por tipo (todas/ingresos/egresos)
- * - Acciones: Editar y Eliminar
- * 
- * Características:
- * - Responsive (mobile-friendly)
- * - Modal de confirmación antes de eliminar
- * - Manejo de errores (FK constraint)
+ * - Acciones: Editar y Eliminar (solo admin)
  */
 
 export const CategoriasTable: React.FC = () => {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const { categorias, removeCategoria } = useCategoriasStore()
+
+  const isAdmin = user?.role === 'admin'
 
   // Estados locales
   const [filtroTipo, setFiltroTipo] = useState<'todas' | 'ingreso' | 'egreso'>('todas')
@@ -83,32 +82,29 @@ export const CategoriasTable: React.FC = () => {
           <div className="flex gap-2">
             <button
               onClick={() => setFiltroTipo('todas')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                filtroTipo === 'todas'
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filtroTipo === 'todas'
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+                }`}
             >
               Todas ({categorias.length})
             </button>
             <button
               onClick={() => setFiltroTipo('ingreso')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                filtroTipo === 'ingreso'
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filtroTipo === 'ingreso'
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+                }`}
             >
               <TrendingUp className="w-4 h-4 inline mr-1" />
               Ingresos ({categorias.filter((c) => c.tipo === 'ingreso').length})
             </button>
             <button
               onClick={() => setFiltroTipo('egreso')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                filtroTipo === 'egreso'
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filtroTipo === 'egreso'
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+                }`}
             >
               <TrendingDown className="w-4 h-4 inline mr-1" />
               Egresos ({categorias.filter((c) => c.tipo === 'egreso').length})
@@ -131,15 +127,17 @@ export const CategoriasTable: React.FC = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Descripción
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acciones
-              </th>
+              {isAdmin && (
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Acciones
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {categoriasFiltradas.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={isAdmin ? 4 : 3} className="px-6 py-8 text-center text-gray-500">
                   No hay categorías
                   {filtroTipo !== 'todas' && ` de tipo ${filtroTipo}`}
                 </td>
@@ -154,11 +152,10 @@ export const CategoriasTable: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        categoria.tipo === 'ingreso'
+                      className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${categoria.tipo === 'ingreso'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
-                      }`}
+                        }`}
                     >
                       {categoria.tipo === 'ingreso' ? (
                         <>
@@ -176,24 +173,26 @@ export const CategoriasTable: React.FC = () => {
                   <td className="px-6 py-4 text-sm text-gray-500">
                     {categoria.descripcion || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => navigate(`/categorias/${categoria.id}/editar`)}
-                        className="p-2 hover:bg-green-50 rounded-lg text-green-600 transition"
-                        title="Editar"
-                      >
-                        <Edit2 className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleEliminarClick(categoria)}
-                        className="p-2 hover:bg-red-50 rounded-lg text-red-600 transition"
-                        title="Eliminar"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
+                  {isAdmin && (
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => navigate(`/categorias/${categoria.id}/editar`)}
+                          className="p-2 hover:bg-green-50 rounded-lg text-green-600 transition"
+                          title="Editar"
+                        >
+                          <Edit2 className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleEliminarClick(categoria)}
+                          className="p-2 hover:bg-red-50 rounded-lg text-red-600 transition"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
@@ -222,11 +221,10 @@ export const CategoriasTable: React.FC = () => {
                   </p>
                 </div>
                 <span
-                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    categoria.tipo === 'ingreso'
+                  className={`px-2 py-1 text-xs font-semibold rounded-full ${categoria.tipo === 'ingreso'
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
-                  }`}
+                    }`}
                 >
                   {categoria.tipo === 'ingreso' ? (
                     <TrendingUp className="w-3 h-3 inline" />
@@ -235,22 +233,24 @@ export const CategoriasTable: React.FC = () => {
                   )}
                 </span>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => navigate(`/categorias/${categoria.id}/editar`)}
-                  className="flex-1 px-3 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 transition"
-                >
-                  <Edit2 className="w-4 h-4 inline mr-1" />
-                  Editar
-                </button>
-                <button
-                  onClick={() => handleEliminarClick(categoria)}
-                  className="flex-1 px-3 py-2 bg-red-50 text-red-700 rounded-lg text-sm font-medium hover:bg-red-100 transition"
-                >
-                  <Trash2 className="w-4 h-4 inline mr-1" />
-                  Eliminar
-                </button>
-              </div>
+              {isAdmin && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => navigate(`/categorias/${categoria.id}/editar`)}
+                    className="flex-1 px-3 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 transition"
+                  >
+                    <Edit2 className="w-4 h-4 inline mr-1" />
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleEliminarClick(categoria)}
+                    className="flex-1 px-3 py-2 bg-red-50 text-red-700 rounded-lg text-sm font-medium hover:bg-red-100 transition"
+                  >
+                    <Trash2 className="w-4 h-4 inline mr-1" />
+                    Eliminar
+                  </button>
+                </div>
+              )}
             </div>
           ))
         )}

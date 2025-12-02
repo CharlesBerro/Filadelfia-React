@@ -7,7 +7,7 @@ import { useTransaccionesStore } from '@/stores/transacciones.store'
 /**
  * Componente de estadísticas de transacciones
  * 
- * Muestra 4 cards:
+ * Muestra 4 cards compactas:
  * - Total Ingresos (verde)
  * - Total Egresos (rojo)
  * - Balance (azul)
@@ -42,11 +42,11 @@ export const TransaccionesStats: React.FC = () => {
 
     if (loadingStats) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="bg-white rounded-xl p-6 shadow-sm animate-pulse">
-                        <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                        <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+                    <div key={i} className="bg-white rounded-lg p-3 sm:p-4 shadow-sm animate-pulse">
+                        <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+                        <div className="h-6 bg-gray-200 rounded w-3/4"></div>
                     </div>
                 ))}
             </div>
@@ -94,21 +94,21 @@ export const TransaccionesStats: React.FC = () => {
     ]
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {cards.map((card, index) => {
                 const Icon = card.icon
                 return (
                     <div
                         key={index}
-                        className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                        className="bg-white rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow"
                     >
-                        <div className="flex items-center justify-between mb-4">
-                            <div className={`w-12 h-12 rounded-lg ${card.bgColor} flex items-center justify-center`}>
-                                <Icon className={`w-6 h-6 ${card.iconColor}`} />
+                        <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg ${card.bgColor} flex items-center justify-center shrink-0`}>
+                                <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${card.iconColor}`} />
                             </div>
+                            <h3 className="text-xs sm:text-sm font-medium text-gray-600 leading-tight">{card.title}</h3>
                         </div>
-                        <h3 className="text-sm font-medium text-gray-600 mb-1">{card.title}</h3>
-                        <p className={`text-2xl font-bold ${card.textColor}`}>
+                        <p className={`text-lg sm:text-2xl font-bold ${card.textColor} truncate`}>
                             {card.isCount ? card.value : formatCurrency(card.value)}
                         </p>
                     </div>

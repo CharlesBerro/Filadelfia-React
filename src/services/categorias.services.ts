@@ -5,16 +5,34 @@ import type { Categoria, CategoriaCreate, CategoriaUpdate } from '@/types'
 /**
  * Servicio para gestionar Categorías
  * 
- * ¿Qué hace este servicio?
- * - Maneja toda la comunicación con Supabase para la tabla 'categorias'
- * - Valida que el usuario solo vea sus propias categorías
- * - Maneja errores de forma consistente
+ * ⚠️ IMPORTANTE: Solo los administradores pueden crear, actualizar y eliminar categorías
  * 
  * Patrón de arquitectura:
  * Componente → Store → Service → Supabase → PostgreSQL
  */
 
 export class CategoriasService {
+
+  /**
+   * Verificar si el usuario es administrador
+   */
+  private static async isAdmin(): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return false
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .limit(1)
+        .maybeSingle()
+
+      return profile?.role === 'admin'
+    } catch {
+      return false
+    }
+  }
 
   /**
    * Obtener todas las categorías
@@ -29,14 +47,7 @@ export class CategoriasService {
       if (!user) throw new Error('No autenticado')
 
       // 2. Verificar rol
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .limit(1)
-        .maybeSingle()
-
-      const isAdmin = profile?.role === 'admin'
+      const isAdmin = await this.isAdmin()
 
       // 3. Consultar categorías
       let query = supabase
@@ -68,14 +79,7 @@ export class CategoriasService {
       if (!user) throw new Error('No autenticado')
 
       // Verificar rol
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .limit(1)
-        .maybeSingle()
-
-      const isAdmin = profile?.role === 'admin'
+      const isAdmin = await this.isAdmin()
 
       let query = supabase
         .from('categorias')
@@ -101,10 +105,7 @@ export class CategoriasService {
   /**
    * Crear una nueva categoría
    * 
-   * Validaciones:
-   * - Nombre no puede estar vacío
-   * - No puede haber dos categorías con el mismo nombre (mismo user)
-   * - Tipo debe ser 'ingreso' o 'egreso'
+   * ⚠️ SOLO ADMINISTRADORES
    */
   static async crear(categoriaData: CategoriaCreate): Promise<Categoria> {
     try {
@@ -118,11 +119,16 @@ export class CategoriasService {
         throw new Error('No autenticado')
       }
 
-      // 2. Validar que no exista una categoría con el mismo nombre
+      // 2. Verificar que sea administrador
+      const isAdmin = await this.isAdmin()
+      if (!isAdmin) {
+        throw new Error('Solo los administradores pueden crear categorías')
+      }
+
+      // 3. Validar que no exista una categoría con el mismo nombre
       const { data: existente } = await supabase
         .from('categorias')
         .select('id')
-        .eq('user_id', user.id)
         .eq('nombre', categoriaData.nombre.trim())
         .maybeSingle()
 
@@ -130,15 +136,14 @@ export class CategoriasService {
         throw new Error('Ya existe una categoría con este nombre')
       }
 
-      // 3. Preparar datos
+      // 4. Preparar datos
       const datosCompletos = {
         ...categoriaData,
-        nombre: categoriaData.nombre.trim(), // Eliminar espacios
+        nombre: categoriaData.nombre.trim(),
         user_id: user.id,
       }
 
-
-      // 4. Insertar en BD
+      // 5. Insertar en BD
       const { data, error } = await supabase
         .from('categorias')
         .insert(datosCompletos)
@@ -149,7 +154,6 @@ export class CategoriasService {
         throw error
       }
 
-
       return data as Categoria
     } catch (error: any) {
       throw error
@@ -159,13 +163,7 @@ export class CategoriasService {
   /**
    * Actualizar una categoría existente
    * 
-   * Solo se puede actualizar:
-   * - nombre
-   * - descripcion
-   * 
-   * NO se puede cambiar el tipo (ingreso/egreso) porque:
-   * - Podría haber transacciones asociadas
-   * - Cambiaría el contexto de esas transacciones
+   * ⚠️ SOLO ADMINISTRADORES
    */
   static async actualizar(
     id: string,
@@ -181,12 +179,17 @@ export class CategoriasService {
         throw new Error('No autenticado')
       }
 
+      // Verificar que sea administrador
+      const isAdmin = await this.isAdmin()
+      if (!isAdmin) {
+        throw new Error('Solo los administradores pueden actualizar categorías')
+      }
+
       // Si se está actualizando el nombre, verificar que no exista
       if (updates.nombre) {
         const { data: existente } = await supabase
           .from('categorias')
           .select('id')
-          .eq('user_id', user.id)
           .eq('nombre', updates.nombre.trim())
           .neq('id', id) // Excluir la categoría actual
           .maybeSingle()
@@ -196,12 +199,11 @@ export class CategoriasService {
         }
       }
 
-      // Actualizar
+      // Actualizar (sin filtrar por user_id, admin puede actualizar cualquiera)
       const { data, error } = await supabase
         .from('categorias')
         .update(updates)
         .eq('id', id)
-        .eq('user_id', user.id)
         .select()
 
       if (error) throw error
@@ -209,7 +211,6 @@ export class CategoriasService {
       if (!data || data.length === 0) {
         throw new Error('No se pudo actualizar la categoría')
       }
-
 
       return data[0] as Categoria
     } catch (error) {
@@ -220,10 +221,7 @@ export class CategoriasService {
   /**
    * Eliminar una categoría
    * 
-   * ⚠️ IMPORTANTE:
-   * - Si hay transacciones asociadas, NO se puede eliminar
-   * - Supabase lanzará un error por Foreign Key constraint
-   * - En ese caso, mostrar mensaje amigable al usuario
+   * ⚠️ SOLO ADMINISTRADORES
    */
   static async eliminar(id: string): Promise<void> {
     try {
@@ -234,6 +232,12 @@ export class CategoriasService {
 
       if (!user) {
         throw new Error('No autenticado')
+      }
+
+      // Verificar que sea administrador
+      const isAdmin = await this.isAdmin()
+      if (!isAdmin) {
+        throw new Error('Solo los administradores pueden eliminar categorías')
       }
 
       // Verificar si hay transacciones asociadas
@@ -250,12 +254,11 @@ export class CategoriasService {
         )
       }
 
-      // Eliminar
+      // Eliminar (sin filtrar por user_id, admin puede eliminar cualquiera)
       const { error } = await supabase
         .from('categorias')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id)
 
       if (error) throw error
 
@@ -266,10 +269,6 @@ export class CategoriasService {
 
   /**
    * Obtener estadísticas de categorías
-   * 
-   * Útil para mostrar:
-   * - Cuántas categorías de ingreso tiene el usuario
-   * - Cuántas categorías de egreso tiene el usuario
    */
   static async obtenerEstadisticas(): Promise<{
     totalIngresos: number
