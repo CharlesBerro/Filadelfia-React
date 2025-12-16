@@ -25,6 +25,7 @@ export const ActividadForm = ({
     const {
         register,
         handleSubmit,
+        watch,
         formState: { errors },
     } = useForm<ActividadCreate>({
         defaultValues: initialData || {
@@ -36,6 +37,17 @@ export const ActividadForm = ({
             estado: 'planeada',
         },
     })
+
+    const metaValue = watch('meta')
+
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(value)
+    }
 
     const handleFormSubmit = async (data: ActividadCreate) => {
         try {
@@ -106,6 +118,11 @@ export const ActividadForm = ({
                                         disabled={isLoading}
                                     />
                                     {errors.meta && <p className="error-text">{errors.meta.message}</p>}
+                                    {metaValue > 0 && (
+                                        <p className="mt-1 text-sm font-semibold text-green-600">
+                                            {formatCurrency(metaValue)}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 

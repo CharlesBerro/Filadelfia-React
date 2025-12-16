@@ -163,6 +163,7 @@ export class ActividadesService {
             const datosCompletos = {
                 ...actividadData,
                 nombre: actividadData.nombre.trim(),
+                fecha_fin: actividadData.fecha_fin || null, // Convertir '' a null
                 user_id: user.id,
             }
 
@@ -241,6 +242,7 @@ export class ActividadesService {
             const datosActualizados = {
                 ...updates,
                 ...(updates.nombre && { nombre: updates.nombre.trim() }),
+                ...(updates.fecha_fin === '' && { fecha_fin: null }), // Convertir '' a null explícitamente
             }
 
             // Construir query

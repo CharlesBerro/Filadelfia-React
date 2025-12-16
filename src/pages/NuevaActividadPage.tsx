@@ -27,6 +27,7 @@ export const NuevaActividadPage: React.FC = () => {
             navigate('/actividades')
         } catch (error: any) {
             setError(error.message || 'Error al crear actividad')
+            throw error
         } finally {
             setIsLoading(false)
         }
