@@ -119,6 +119,8 @@ export const PersonasPage: React.FC = () => {
             onFilterChange={setFiltros}
             sedes={sedes}
           />
+
+
         </div>
       </div>
     </Layout>

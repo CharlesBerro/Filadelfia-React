@@ -15,6 +15,7 @@ const PersonasPage = lazy(() => import('@/pages/PersonasPage').then(module => ({
 const NuevaPersonaPage = lazy(() => import('@/pages/NuevaPersonaPage').then(module => ({ default: module.NuevaPersonaPage })))
 const PersonaDetallePage = lazy(() => import('@/pages/PersonaDetallePage').then(module => ({ default: module.PersonaDetallePage })))
 const EditarPersonaPage = lazy(() => import('@/pages/EditarPersonaPage').then(module => ({ default: module.EditarPersonaPage })))
+const PersonasReportesPage = lazy(() => import('@/pages/PersonasReportesPage').then(module => ({ default: module.PersonasReportesPage })))
 
 const CategoriasPage = lazy(() => import('@/pages/CategoriasPage').then(module => ({ default: module.CategoriasPage })))
 const NuevaCategoriaPage = lazy(() => import('@/pages/NuevaCategoriaPage').then(module => ({ default: module.NuevaCategoriaPage })))
@@ -82,6 +83,14 @@ export const AppRoutes: React.FC = () => {
             element={
               <ProtectedRoute>
                 <PersonaDetallePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/personas/reportes"
+            element={
+              <ProtectedRoute>
+                <PersonasReportesPage />
               </ProtectedRoute>
             }
           />

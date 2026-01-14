@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Plus,
   Receipt,
-  Building2
+  Building2,
+  FileText
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -57,6 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       icon: Users,
       items: [
         { icon: Users, label: 'Listado', path: '/personas' },
+        { icon: FileText, label: 'Informes', path: '/personas/reportes' },
       ]
     },
     {
