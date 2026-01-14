@@ -34,6 +34,8 @@ export interface Persona {
   nivel_educativo: string
   bautizado: boolean
   fecha_bautismo?: string | null
+  taller_maestro?: boolean
+  fecha_taller_maestro?: string | null
   ministerio?: string | null
   escala_crecimiento: number
   observaciones?: string | null
@@ -62,6 +64,8 @@ export interface PersonaCreate {
   nivel_educativo: string
   bautizado: boolean
   fecha_bautismo?: string | null
+  taller_maestro?: boolean
+  fecha_taller_maestro?: string | null
   ministerio?: string | null
   escala_crecimiento: number
   observaciones?: string | null

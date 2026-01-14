@@ -161,7 +161,7 @@ export const PersonaDetallePage: React.FC = () => {
                 {/* Name and ID */}
                 <div className="flex-1 min-w-0">
                   <h1 className="text-xl font-bold text-gray-900 truncate">
-                    {persona.nombres} {persona.primer_apellido}
+                    {persona.nombres} {persona.primer_apellido} {persona.segundo_apellido || ''}
                   </h1>
                   <p className="text-sm text-gray-600 mt-1">
                     CC: {persona.numero_id}
@@ -281,6 +281,10 @@ export const PersonaDetallePage: React.FC = () => {
                   <p><span className="font-medium">Bautizado:</span> {persona.bautizado ? 'Sí' : 'No'}</p>
                   {persona.bautizado && persona.fecha_bautismo && (
                     <p><span className="font-medium">Fecha bautismo:</span> {persona.fecha_bautismo}</p>
+                  )}
+                  <p className="mt-1"><span className="font-medium">Asistió a Taller:</span> {persona.taller_maestro ? 'Sí' : 'No'}</p>
+                  {persona.taller_maestro && persona.fecha_taller_maestro && (
+                    <p><span className="font-medium">Fecha taller:</span> {persona.fecha_taller_maestro}</p>
                   )}
                 </div>
               </div>

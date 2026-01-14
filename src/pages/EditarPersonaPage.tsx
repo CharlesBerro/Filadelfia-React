@@ -367,48 +367,79 @@ export const EditarPersonaPage: React.FC = () => {
             <div className="bg-white rounded-xl border border-green-100 p-4 space-y-3">
               <h2 className="font-bold text-gray-900 mb-2">Información espiritual</h2>
 
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="bautizado"
-                  checked={!!formData.bautizado}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-green-600 border-green-300 rounded"
-                />
-                <span className="text-sm text-gray-700">¿Está bautizado?</span>
-              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Columna 1: Bautismo */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      name="bautizado"
+                      checked={!!formData.bautizado}
+                      onChange={handleChange}
+                      className="w-4 h-4 text-green-600 border-green-300 rounded"
+                    />
+                    <span className="text-sm text-gray-700">¿Está bautizado?</span>
+                  </label>
 
-              {formData.bautizado && (
-                <Input
-                  label="Fecha de bautismo"
-                  name="fecha_bautismo"
-                  type="date"
-                  value={formData.fecha_bautismo || ''}
-                  onChange={handleChange}
-                />
-              )}
+                  {formData.bautizado && (
+                    <Input
+                      label="Fecha de bautismo"
+                      name="fecha_bautismo"
+                      type="date"
+                      value={formData.fecha_bautismo || ''}
+                      onChange={handleChange}
+                    />
+                  )}
+                </div>
+
+                {/* Columna 2: Taller del Maestro */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      name="taller_maestro"
+                      checked={!!formData.taller_maestro}
+                      onChange={handleChange}
+                      className="w-4 h-4 text-green-600 border-green-300 rounded"
+                    />
+                    <span className="text-sm text-gray-700">¿Taller del Maestro?</span>
+                  </label>
+
+                  {formData.taller_maestro && (
+                    <Input
+                      label="Fecha del Taller"
+                      name="fecha_taller_maestro"
+                      type="date"
+                      value={formData.fecha_taller_maestro || ''}
+                      onChange={handleChange}
+                    />
+                  )}
+                </div>
+              </div>
 
               {/* Ministerios */}
               {ministerios.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ministerios
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {ministerios.map((m) => (
-                      <label
-                        key={m.id}
-                        className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-green-50 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={ministeriosSeleccionados.includes(m.id)}
-                          onChange={() => handleMinisterioToggle(m.id)}
-                          className="w-4 h-4 text-green-600 border-green-300 rounded"
-                        />
-                        <span className="text-xs text-gray-700">{m.nombre}</span>
-                      </label>
-                    ))}
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ministerios
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {ministerios.map((m) => (
+                        <label
+                          key={m.id}
+                          className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-green-50 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={ministeriosSeleccionados.includes(m.id)}
+                            onChange={() => handleMinisterioToggle(m.id)}
+                            className="w-4 h-4 text-green-600 border-green-300 rounded"
+                          />
+                          <span className="text-xs text-gray-700">{m.nombre}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

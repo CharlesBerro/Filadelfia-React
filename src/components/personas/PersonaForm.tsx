@@ -81,6 +81,8 @@ export const PersonaForm: React.FC = () => {
     nivel_educativo: 'Primaria',
     bautizado: false,
     fecha_bautismo: null,
+    taller_maestro: false,
+    fecha_taller_maestro: null,
     ministerio: null,
     escala_crecimiento: 1,
     url_foto: null,
