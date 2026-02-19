@@ -594,28 +594,59 @@ export const PersonaForm: React.FC = () => {
                   Información Espiritual
                 </h3>
 
-                <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl input-shadow cursor-pointer hover:bg-gray-100 transition-colors duration-200">
-                  <input
-                    type="checkbox"
-                    name="bautizado"
-                    checked={formData.bautizado}
-                    onChange={handleChange}
-                    className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
-                  />
-                  <span className="text-base font-medium text-gray-700">¿Está bautizado?</span>
-                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Bautismo */}
+                  <div className="space-y-4">
+                    <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl input-shadow cursor-pointer hover:bg-gray-100 transition-colors duration-200">
+                      <input
+                        type="checkbox"
+                        name="bautizado"
+                        checked={formData.bautizado}
+                        onChange={handleChange}
+                        className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                      />
+                      <span className="text-base font-medium text-gray-700">¿Está bautizado?</span>
+                    </label>
 
-                {formData.bautizado && (
-                  <div className="mt-4 fade-in">
-                    <Input
-                      label="Fecha de Bautismo"
-                      name="fecha_bautismo"
-                      type="date"
-                      value={formData.fecha_bautismo || ''}
-                      onChange={handleChange}
-                    />
+                    {formData.bautizado && (
+                      <div className="fade-in">
+                        <Input
+                          label="Fecha de Bautismo"
+                          name="fecha_bautismo"
+                          type="date"
+                          value={formData.fecha_bautismo || ''}
+                          onChange={handleChange}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  {/* Taller del Maestro */}
+                  <div className="space-y-4">
+                    <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl input-shadow cursor-pointer hover:bg-gray-100 transition-colors duration-200">
+                      <input
+                        type="checkbox"
+                        name="taller_maestro"
+                        checked={formData.taller_maestro}
+                        onChange={handleChange}
+                        className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                      />
+                      <span className="text-base font-medium text-gray-700">¿Taller del Maestro?</span>
+                    </label>
+
+                    {formData.taller_maestro && (
+                      <div className="fade-in">
+                        <Input
+                          label="Fecha del Taller"
+                          name="fecha_taller_maestro"
+                          type="date"
+                          value={formData.fecha_taller_maestro || ''}
+                          onChange={handleChange}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
 
                 {/* Ministerios */}
                 {ministerios.length > 0 && (
