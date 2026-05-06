@@ -4,8 +4,8 @@ import { useAuthStore } from '@/stores/auth.store'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  requiredRole?: 'admin' | 'lider' | 'formador' | 'usuario'
-  allowedRoles?: Array<'admin' | 'lider' | 'formador' | 'usuario'>
+  requiredRole?: 'admin' | 'lider' | 'organizador' | 'formador' | 'usuario'
+  allowedRoles?: Array<'admin' | 'lider' | 'organizador' | 'formador' | 'usuario'>
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({

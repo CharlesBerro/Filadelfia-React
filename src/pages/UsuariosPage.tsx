@@ -26,7 +26,7 @@ interface UserProfile {
     id: string
     full_name: string
     email?: string
-    role: 'admin' | 'usuario' | 'contador'
+    role: 'admin' | 'lider' | 'organizador' | 'formador' | 'usuario'
     created_at: string
     sede_id?: string
     sedes?: {
@@ -342,11 +342,15 @@ export const UsuariosPage = () => {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin'
                                                     ? 'bg-purple-100 text-purple-800'
-                                                    : user.role === 'contador'
-                                                        ? 'bg-blue-100 text-blue-800'
-                                                        : 'bg-green-100 text-green-800'
+                                                    : user.role === 'lider'
+                                                        ? 'bg-indigo-100 text-indigo-800'
+                                                        : user.role === 'organizador'
+                                                            ? 'bg-orange-100 text-orange-800'
+                                                        : user.role === 'formador'
+                                                            ? 'bg-blue-100 text-blue-800'
+                                                            : 'bg-green-100 text-green-800'
                                                     }`}>
-                                                    {user.role === 'admin' ? 'Administrador' : user.role === 'contador' ? 'Contador' : 'Usuario'}
+                                                    {user.role === 'admin' ? 'Administrador' : user.role === 'lider' ? 'Lider' : user.role === 'organizador' ? 'Organizador' : user.role === 'formador' ? 'Formador' : 'Usuario'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">

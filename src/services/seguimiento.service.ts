@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth.store'
 import type { EscalaCrecimiento, GrupoEscala, GrupoEscalaDetallado, Persona, PersonaEscala, User } from '@/types'
 
-type EstadoSeguimiento = 'pendiente' | 'en_curso' | 'aprobado' | 'retirado'
+type EstadoSeguimiento = 'pendiente' | 'en_curso' | 'finalizado' | 'retirado'
 
 export class SeguimientoService {
   static async obtenerEscalasActivas(): Promise<EscalaCrecimiento[]> {
@@ -37,7 +37,9 @@ export class SeguimientoService {
       `)
       .order('created_at', { ascending: false })
 
-    if (user.role !== 'admin') {
+    if (user.role === 'formador') {
+      query = query.eq('formador_id', user.id)
+    } else if (user.role !== 'admin') {
       query = query.eq('sede_id', user.sede_id)
     }
 
@@ -49,8 +51,8 @@ export class SeguimientoService {
   static async crearGrupo(input: Omit<GrupoEscala, 'id' | 'created_at' | 'updated_at' | 'created_by'>): Promise<GrupoEscala> {
     const { user } = useAuthStore.getState()
     if (!user) throw new Error('Usuario no autenticado')
-    if (user.role !== 'admin' && user.role !== 'lider') {
-      throw new Error('Solo admin y lider pueden crear grupos')
+    if (user.role !== 'admin' && user.role !== 'lider' && user.role !== 'organizador') {
+      throw new Error('Solo admin, lider y organizador pueden crear grupos')
     }
 
     const payload = {
@@ -171,8 +173,56 @@ export class SeguimientoService {
       .select('*')
       .single()
 
-    if (error) throw error
+    if (error) {
+      // Compatibilidad con registros antiguos: si ya existe por persona+escala
+      // pero no tiene grupo asignado, lo vinculamos al grupo actual.
+      if (error.message?.toLowerCase().includes('duplicate key value')) {
+        const { data: existentes, error: findErr } = await supabase
+          .from('persona_escala')
+          .select('*')
+          .eq('persona_id', input.persona_id)
+          .eq('escala_id', input.escala_id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+
+        if (findErr) throw findErr
+        if (existentes && existentes.length > 0) {
+          const existente = existentes[0] as PersonaEscala
+          const { data: actualizado, error: updErr } = await supabase
+            .from('persona_escala')
+            .update({
+              grupo_id: input.grupo_id,
+              sede_id: input.sede_id,
+              estado: input.estado ?? 'pendiente',
+              fecha_estudio: input.fecha_estudio || null,
+              updated_by: user.id,
+            })
+            .eq('id', existente.id)
+            .select('*')
+            .single()
+
+          if (updErr) throw updErr
+          return actualizado as PersonaEscala
+        }
+      }
+      throw error
+    }
     return data as PersonaEscala
+  }
+
+  static async eliminarInscripcion(id: string): Promise<void> {
+    const { user } = useAuthStore.getState()
+    if (!user) throw new Error('Usuario no autenticado')
+    if (user.role !== 'admin' && user.role !== 'lider' && user.role !== 'organizador') {
+      throw new Error('Solo admin, lider u organizador pueden eliminar inscripciones')
+    }
+
+    const { error } = await supabase
+      .from('persona_escala')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
   }
 
   static async actualizarEstadoSeguimiento(
@@ -188,7 +238,7 @@ export class SeguimientoService {
       updated_by: user.id,
     }
 
-    if (estado === 'aprobado') {
+    if (estado === 'finalizado') {
       payload.fecha_aprobacion_manual = options?.fechaAprobacionManual ?? new Date().toISOString().slice(0, 10)
     }
 
@@ -239,7 +289,7 @@ export class SeguimientoService {
       .select('id, estado')
       .eq('persona_id', personaId)
       .eq('escala_id', escalaPrevia.id)
-      .eq('estado', 'aprobado')
+      .eq('estado', 'finalizado')
       .limit(1)
 
     if (aprobErr) throw aprobErr

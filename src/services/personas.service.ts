@@ -34,14 +34,19 @@ export class PersonasService {
       const { user: authUser } = useAuthStore.getState()
       const rol = authUser?.role
       const esAdmin = rol === 'admin'
+      const vePorSede = rol === 'lider' || rol === 'organizador' || rol === 'formador'
 
       let query = supabase
         .from('persona')
         .select('*')
 
       if (!esAdmin) {
-        // Usuario normal: solo sus propios registros
-        query = query.eq('user_id', user.id)
+        if (vePorSede && authUser?.sede_id) {
+          query = query.eq('sede_id', authUser.sede_id)
+        } else {
+          // Usuario normal: solo sus propios registros
+          query = query.eq('user_id', user.id)
+        }
       }
 
       const { data, error } = await query.order('fecha_nacimiento', { ascending: true })
@@ -267,13 +272,16 @@ export class PersonasService {
       }
 
       // Eliminar registro de la BD
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('persona')
         .delete()
         .eq('id', id)
-        .select()
+        .select('id')
 
       if (error) throw error
+      if (!data || data.length === 0) {
+        throw new Error('No tienes permisos para eliminar esta persona o el registro ya no existe')
+      }
       return true
     } catch (error: any) {
       throw error

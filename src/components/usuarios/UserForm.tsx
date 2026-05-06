@@ -10,7 +10,7 @@ interface UserFormProps {
         id: string
         full_name?: string
         email?: string
-        role: 'admin' | 'usuario' | 'contador'
+        role: 'admin' | 'lider' | 'organizador' | 'formador' | 'usuario'
         sede_id?: string
     } | null
     onSave: (data: any) => Promise<void>
@@ -22,7 +22,7 @@ export const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel, isLo
     const [fullName, setFullName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [role, setRole] = useState<'admin' | 'usuario' | 'contador'>('usuario')
+    const [role, setRole] = useState<'admin' | 'lider' | 'organizador' | 'formador' | 'usuario'>('usuario')
     const [sedeId, setSedeId] = useState('')
     const [sedes, setSedes] = useState<Sede[]>([])
 
@@ -129,7 +129,9 @@ export const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel, isLo
                             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none appearance-none bg-white"
                         >
                             <option value="usuario">Usuario</option>
-                            <option value="contador">Contador</option>
+                            <option value="formador">Formador</option>
+                            <option value="organizador">Organizador</option>
+                            <option value="lider">Lider</option>
                             <option value="admin">Administrador</option>
                         </select>
                     </div>

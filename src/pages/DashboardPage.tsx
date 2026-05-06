@@ -83,6 +83,8 @@ export const DashboardPage: React.FC = () => {
                       ? 'Administrador'
                       : user?.role === 'lider'
                         ? 'Lider'
+                        : user?.role === 'organizador'
+                          ? 'Organizador'
                         : user?.role === 'formador'
                           ? 'Formador'
                         : 'Usuario'}

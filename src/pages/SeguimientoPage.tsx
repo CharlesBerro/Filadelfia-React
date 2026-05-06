@@ -4,11 +4,11 @@ import { useAuthStore } from '@/stores/auth.store'
 import { SeguimientoService } from '@/services/seguimiento.service'
 import type { EscalaCrecimiento, GrupoEscalaDetallado, Persona, PersonaEscala, User } from '@/types'
 
-type EstadoSeguimiento = 'pendiente' | 'en_curso' | 'aprobado' | 'retirado'
+type EstadoSeguimiento = 'pendiente' | 'en_curso' | 'finalizado' | 'retirado'
 
 export const SeguimientoPage: React.FC = () => {
   const { user } = useAuthStore()
-  const canManageGroups = user?.role === 'admin' || user?.role === 'lider'
+  const canManageGroups = user?.role === 'admin' || user?.role === 'lider' || user?.role === 'organizador'
 
   const [grupos, setGrupos] = useState<GrupoEscalaDetallado[]>([])
   const [escalas, setEscalas] = useState<EscalaCrecimiento[]>([])
@@ -34,11 +34,34 @@ export const SeguimientoPage: React.FC = () => {
     fecha_estudio: '',
     estado: 'pendiente' as EstadoSeguimiento,
   })
+  const [personaSearch, setPersonaSearch] = useState('')
 
   const grupoActivo = useMemo(
     () => grupos.find((g) => g.id === grupoSeleccionado) || null,
     [grupos, grupoSeleccionado]
   )
+
+  const personasFiltradas = useMemo(() => {
+    const term = personaSearch.trim().toLowerCase()
+    if (!term) return personas
+    return personas.filter((p) => {
+      const nombre = `${p.nombres || ''} ${p.primer_apellido || ''} ${p.segundo_apellido || ''}`.toLowerCase()
+      const cedula = (p.numero_id || '').toLowerCase()
+      const telefono = (p.telefono || '').toLowerCase()
+      return nombre.includes(term) || cedula.includes(term) || telefono.includes(term)
+    })
+  }, [personas, personaSearch])
+
+  useEffect(() => {
+    if (personasFiltradas.length === 1) {
+      setFormInscripcion((prev) => ({ ...prev, persona_id: personasFiltradas[0].id }))
+      return
+    }
+
+    if (!personasFiltradas.some((p) => p.id === formInscripcion.persona_id)) {
+      setFormInscripcion((prev) => ({ ...prev, persona_id: '' }))
+    }
+  }, [personasFiltradas, formInscripcion.persona_id])
 
   useEffect(() => {
     const cargar = async () => {
@@ -142,8 +165,14 @@ export const SeguimientoPage: React.FC = () => {
       const data = await SeguimientoService.obtenerSeguimientoPorGrupo(grupoActivo.id)
       setSeguimientoGrupo(data)
       setFormInscripcion({ persona_id: '', fecha_estudio: '', estado: 'pendiente' })
+      setPersonaSearch('')
     } catch (err: any) {
-      alert(err.message || 'No se pudo inscribir la persona')
+      const msg = err?.message || ''
+      if (msg.toLowerCase().includes('duplicate key value')) {
+        alert('Esta persona ya está inscrita en este grupo.')
+      } else {
+        alert(msg || 'No se pudo inscribir la persona')
+      }
     } finally {
       setSaving(false)
     }
@@ -161,6 +190,23 @@ export const SeguimientoPage: React.FC = () => {
       }
     } catch (err: any) {
       alert(err.message || 'No se pudo actualizar el estado')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const eliminarInscripcion = async (id: string) => {
+    if (!canManageGroups) return
+    if (!window.confirm('¿Eliminar esta inscripción del grupo?')) return
+    setSaving(true)
+    try {
+      await SeguimientoService.eliminarInscripcion(id)
+      if (grupoSeleccionado) {
+        const data = await SeguimientoService.obtenerSeguimientoPorGrupo(grupoSeleccionado)
+        setSeguimientoGrupo(data)
+      }
+    } catch (err: any) {
+      alert(err.message || 'No se pudo eliminar la inscripción')
     } finally {
       setSaving(false)
     }
@@ -248,6 +294,14 @@ export const SeguimientoPage: React.FC = () => {
                   </select>
                 </div>
 
+                {grupos.length === 0 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
+                    {user?.role === 'formador'
+                      ? 'No tienes grupos asignados todavía. Pide al líder o administrador que te asigne un grupo.'
+                      : 'No hay grupos registrados para tu sede todavía.'}
+                  </div>
+                )}
+
                 {grupoActivo && (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
@@ -268,15 +322,40 @@ export const SeguimientoPage: React.FC = () => {
                     <form onSubmit={inscribirPersona} className="border-t border-gray-100 pt-4">
                       <h3 className="font-medium text-gray-900 mb-3">Inscribir Persona</h3>
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <div className="relative">
+                          <input
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full"
+                            placeholder="Buscar por nombre, cédula o teléfono"
+                            value={personaSearch}
+                            onChange={(e) => setPersonaSearch(e.target.value)}
+                          />
+                          {personaSearch.trim() && personasFiltradas.length > 0 && (
+                            <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-auto">
+                              {personasFiltradas.slice(0, 12).map((p) => (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormInscripcion((prev) => ({ ...prev, persona_id: p.id }))
+                                    setPersonaSearch(`${p.nombres} ${p.primer_apellido}`)
+                                  }}
+                                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                                >
+                                  {p.nombres} {p.primer_apellido} ({p.numero_id})
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                         <select
                           className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
                           value={formInscripcion.persona_id}
                           onChange={(e) => setFormInscripcion((p) => ({ ...p, persona_id: e.target.value }))}
                         >
                           <option value="">Persona</option>
-                          {personas.map((p) => (
+                          {personasFiltradas.map((p) => (
                             <option key={p.id} value={p.id}>
-                              {p.nombres} {p.primer_apellido}
+                              {p.nombres} {p.primer_apellido} ({p.numero_id})
                             </option>
                           ))}
                         </select>
@@ -287,7 +366,7 @@ export const SeguimientoPage: React.FC = () => {
                         >
                           <option value="pendiente">pendiente</option>
                           <option value="en_curso">en_curso</option>
-                          <option value="aprobado">aprobado</option>
+                          <option value="finalizado">finalizado</option>
                           <option value="retirado">retirado</option>
                         </select>
                         <input
@@ -322,6 +401,7 @@ export const SeguimientoPage: React.FC = () => {
                                 <th className="px-3 py-2 text-left">Fecha estudio</th>
                                 <th className="px-3 py-2 text-left">Fecha aprobación</th>
                                 <th className="px-3 py-2 text-left">Acción</th>
+                                {canManageGroups && <th className="px-3 py-2 text-left">Eliminar</th>}
                               </tr>
                             </thead>
                             <tbody>
@@ -345,10 +425,21 @@ export const SeguimientoPage: React.FC = () => {
                                     >
                                       <option value="pendiente">pendiente</option>
                                       <option value="en_curso">en_curso</option>
-                                      <option value="aprobado">aprobado</option>
+                                      <option value="finalizado">finalizado</option>
                                       <option value="retirado">retirado</option>
                                     </select>
                                   </td>
+                                  {canManageGroups && (
+                                    <td className="px-3 py-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => eliminarInscripcion(item.id)}
+                                        className="text-red-600 hover:text-red-700 text-xs font-medium"
+                                      >
+                                        Quitar
+                                      </button>
+                                    </td>
+                                  )}
                                 </tr>
                               ))}
                             </tbody>

@@ -3,7 +3,7 @@ export interface User {
   id: string
   email: string
   full_name: string
-  role: 'admin' | 'lider' | 'formador' | 'usuario'
+  role: 'admin' | 'lider' | 'organizador' | 'formador' | 'usuario'
   sede_id: string
   sede_nombre?: string
   sede_lider?: string
@@ -178,7 +178,7 @@ export interface PersonaEscala {
   escala_id: string
   grupo_id?: string | null
   sede_id?: string | null
-  estado?: 'pendiente' | 'en_curso' | 'aprobado' | 'retirado'
+  estado?: 'pendiente' | 'en_curso' | 'finalizado' | 'retirado'
   fecha_aprobacion_manual?: string | null
   fecha_estudio?: string | null
   created_by?: string | null
