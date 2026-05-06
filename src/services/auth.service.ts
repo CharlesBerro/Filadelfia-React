@@ -53,7 +53,7 @@ export class AuthService {
           id: profileData.id,
           email: data.user.email || '',
           full_name: profileData.full_name || 'Usuario',
-          role: profileData.role as 'admin' | 'usuario' | 'contador',
+          role: profileData.role as 'admin' | 'lider' | 'formador' | 'usuario',
           sede_id: profileData.sede_id,
           sede_nombre: sedeInfo?.nombre_sede || 'Sin sede',
           sede_lider: sedeInfo?.lider || 'Sin asignar',

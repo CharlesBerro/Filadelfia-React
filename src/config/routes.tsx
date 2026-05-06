@@ -32,6 +32,7 @@ const TransaccionDetallePage = lazy(() => import('@/pages/TransaccionDetallePage
 const EditarTransaccionPage = lazy(() => import('@/pages/EditarTransaccionPage').then(module => ({ default: module.EditarTransaccionPage })))
 
 const ReportesPage = lazy(() => import('@/pages/ReportesPage').then(module => ({ default: module.ReportesPage })))
+const SeguimientoPage = lazy(() => import('@/pages/SeguimientoPage').then(module => ({ default: module.SeguimientoPage })))
 const UsuariosPage = lazy(() => import('@/pages/UsuariosPage').then(module => ({ default: module.UsuariosPage })))
 const SedesPage = lazy(() => import('@/pages/SedesPage').then(module => ({ default: module.SedesPage })))
 
@@ -107,7 +108,7 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/categorias"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'lider']}>
                 <CategoriasPage />
               </ProtectedRoute>
             }
@@ -115,7 +116,7 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/categorias/nueva"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'lider']}>
                 <NuevaCategoriaPage />
               </ProtectedRoute>
             }
@@ -123,7 +124,7 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/categorias/:id/editar"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'lider']}>
                 <EditarCategoriaPage />
               </ProtectedRoute>
             }
@@ -133,7 +134,7 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/actividades"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'lider']}>
                 <ActividadesPage />
               </ProtectedRoute>
             }
@@ -141,7 +142,7 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/actividades/nueva"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'lider']}>
                 <NuevaActividadPage />
               </ProtectedRoute>
             }
@@ -149,7 +150,7 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/actividades/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'lider']}>
                 <ActividadDetallePage />
               </ProtectedRoute>
             }
@@ -157,7 +158,7 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/actividades/:id/editar"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'lider']}>
                 <EditarActividadPage />
               </ProtectedRoute>
             }
@@ -167,7 +168,7 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/transacciones"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'lider']}>
                 <TransaccionesPage />
               </ProtectedRoute>
             }
@@ -175,7 +176,7 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/transacciones/nueva"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'lider']}>
                 <NuevaTransaccionPage />
               </ProtectedRoute>
             }
@@ -183,7 +184,7 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/transacciones/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'lider']}>
                 <TransaccionDetallePage />
               </ProtectedRoute>
             }
@@ -191,7 +192,7 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/transacciones/:id/editar"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'lider']}>
                 <EditarTransaccionPage />
               </ProtectedRoute>
             }
@@ -201,8 +202,16 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/reportes"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'lider', 'formador']}>
                 <ReportesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/seguimiento"
+            element={
+              <ProtectedRoute>
+                <SeguimientoPage />
               </ProtectedRoute>
             }
           />

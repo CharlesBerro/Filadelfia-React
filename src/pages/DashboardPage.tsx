@@ -81,8 +81,10 @@ export const DashboardPage: React.FC = () => {
                   <p className="text-lg sm:text-2xl font-bold text-green-600 mt-2 capitalize">
                     {user?.role === 'admin'
                       ? 'Administrador'
-                      : user?.role === 'contador'
-                        ? 'Contador'
+                      : user?.role === 'lider'
+                        ? 'Lider'
+                        : user?.role === 'formador'
+                          ? 'Formador'
                         : 'Usuario'}
                   </p>
                 </div>

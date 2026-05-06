@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PersonasService } from '@/services/personas.service'
 import { MinisteriosService } from '@/services/ministerios.service'
-import { EscalasService } from '@/services/escalas_services'
 import { usePersonasStore } from '@/stores/personas.store'
 import { useCedulaValidator } from '@/hooks/useCedulaValidator'
 import { Input } from '@/components/ui/Input'
@@ -11,7 +10,7 @@ import { SelectMunicipio } from '@/components/ui/SelectMunicipio'
 import { FotoUploader } from '@/components/ui/FotoUploader'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { ArrowLeft, Save, CheckCircle2, XCircle, User, MapPin, Briefcase, Heart } from 'lucide-react'
-import type { PersonaCreate, Ministerio, EscalaCrecimiento } from '@/types'
+import type { PersonaCreate, Ministerio } from '@/types'
 
 // Estilos CSS personalizados para el gradiente y la sombra de los inputs (Mismos que el formulario anterior)
 const customStyles = `
@@ -54,13 +53,11 @@ export const PersonaForm: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [ministerios, setMinisterios] = useState<Ministerio[]>([])
-  const [escalas, setEscalas] = useState<EscalaCrecimiento[]>([])
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success'>('idle')
 
   // 🔑 PASO 1: Verificación de cédula
   const [cedulaVerificada, setCedulaVerificada] = useState(false)
   const [ministeriosSeleccionados, setMinisteriosSeleccionados] = useState<string[]>([])
-  const [escalasSeleccionadas, setEscalasSeleccionadas] = useState<string[]>([])
 
   const [formData, setFormData] = useState<PersonaCreate>({
     tipo_id: 'CC',
@@ -96,12 +93,10 @@ export const PersonaForm: React.FC = () => {
 
   const cargarDatos = async () => {
     try {
-      const [ministeriosData, escalasData] = await Promise.all([
+      const [ministeriosData] = await Promise.all([
         MinisteriosService.obtenerTodos(),
-        EscalasService.obtenerTodas(),
       ])
       setMinisterios(ministeriosData)
-      setEscalas(escalasData)
     } catch (error) {
     }
   }
@@ -152,14 +147,6 @@ export const PersonaForm: React.FC = () => {
     )
   }
 
-  const handleEscalaToggle = (escalaId: string) => {
-    setEscalasSeleccionadas((prev) =>
-      prev.includes(escalaId)
-        ? prev.filter((id) => id !== escalaId)
-        : [...prev, escalaId]
-    )
-  }
-
   const validar = (): boolean => {
     const newErrors: Record<string, string> = {}
 
@@ -191,10 +178,6 @@ export const PersonaForm: React.FC = () => {
 
       if (ministeriosSeleccionados.length > 0) {
         await MinisteriosService.asignarAPersona(nuevaPersona.id, ministeriosSeleccionados)
-      }
-
-      if (escalasSeleccionadas.length > 0) {
-        await EscalasService.asignarAPersona(nuevaPersona.id, escalasSeleccionadas)
       }
 
       addPersona(nuevaPersona)
@@ -676,35 +659,14 @@ export const PersonaForm: React.FC = () => {
                   </div>
                 )}
 
-                {/* Escalas */}
-                {escalas.length > 0 && (
-                  <div className="mt-6 fade-in">
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">
-                      Escalas de Crecimiento
-                    </label>
-                    <div className="space-y-3">
-                      {escalas.map((e) => (
-                        <label
-                          key={e.id}
-                          className={`flex items-center gap-2 p-3 rounded-xl cursor-pointer transition-all duration-200 ${escalasSeleccionadas.includes(e.id)
-                            ? 'bg-emerald-100 border-2 border-emerald-500 font-semibold'
-                            : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
-                            }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={escalasSeleccionadas.includes(e.id)}
-                            onChange={() => handleEscalaToggle(e.id)}
-                            className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
-                          />
-                          <span className="text-sm text-gray-700">
-                            {e.nombre}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <div className="mt-6 fade-in">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Escalas de Crecimiento
+                  </label>
+                  <p className="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                    El avance de escalas se gestiona ahora desde el módulo de Seguimiento.
+                  </p>
+                </div>
               </div>
             </div>
 

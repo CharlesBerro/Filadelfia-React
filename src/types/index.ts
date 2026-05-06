@@ -3,7 +3,7 @@ export interface User {
   id: string
   email: string
   full_name: string
-  role: 'admin' | 'usuario' | 'contador'
+  role: 'admin' | 'lider' | 'formador' | 'usuario'
   sede_id: string
   sede_nombre?: string
   sede_lider?: string
@@ -156,6 +156,7 @@ export interface EscalaCrecimiento {
   nombre: string
   orden: number
   descripcion?: string | null
+  activo?: boolean
   created_at: string
 }
 
@@ -175,10 +176,38 @@ export interface PersonaEscala {
   id: string
   persona_id: string
   escala_id: string
+  grupo_id?: string | null
+  sede_id?: string | null
+  estado?: 'pendiente' | 'en_curso' | 'aprobado' | 'retirado'
+  fecha_aprobacion_manual?: string | null
+  fecha_estudio?: string | null
+  created_by?: string | null
+  updated_by?: string | null
   fecha_inicio: string
   fecha_fin?: string | null
   completado: boolean
   created_at: string
+  updated_at?: string | null
+}
+
+export interface GrupoEscala {
+  id: string
+  sede_id: string
+  escala_id: string
+  formador_id: string
+  nombre_grupo: string
+  fecha_inicio: string
+  fecha_fin_manual?: string | null
+  estado: 'activo' | 'cerrado'
+  created_by: string
+  created_at: string
+  updated_at?: string | null
+}
+
+export interface GrupoEscalaDetallado extends GrupoEscala {
+  escala?: { id: string; nombre_escala: string; orden: number } | null
+  formador?: { id: string; full_name: string } | null
+  sede?: { id: string; nombre_sede: string } | null
 }
 // Sede
 export interface Sede {

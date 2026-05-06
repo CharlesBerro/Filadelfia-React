@@ -3,14 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Layout } from '@/components/layout/Layout'
 import { PersonasService } from '@/services/personas.service'
 import { MinisteriosService } from '@/services/ministerios.service'
-import { EscalasService } from '@/services/escalas_services'
 import { SelectDepartamento } from '@/components/ui/SelectDepartamento'
 import { SelectMunicipio } from '@/components/ui/SelectMunicipio'
 import { FotoUploader } from '@/components/ui/FotoUploader'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
-import type { Persona, Ministerio, EscalaCrecimiento } from '@/types'
+import type { Persona, Ministerio } from '@/types'
 import { ArrowLeft, Save, CheckCircle2 } from 'lucide-react'
 
 export const EditarPersonaPage: React.FC = () => {
@@ -20,9 +19,7 @@ export const EditarPersonaPage: React.FC = () => {
   const [persona, setPersona] = useState<Persona | null>(null)
   const [formData, setFormData] = useState<Partial<Persona>>({})
   const [ministerios, setMinisterios] = useState<Ministerio[]>([])
-  const [escalas, setEscalas] = useState<EscalaCrecimiento[]>([])
   const [ministeriosSeleccionados, setMinisteriosSeleccionados] = useState<string[]>([])
-  const [escalasSeleccionadas, setEscalasSeleccionadas] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -37,23 +34,19 @@ export const EditarPersonaPage: React.FC = () => {
         // p: datos de la persona
         // allMins / allEscs: catálogo completo
         // minsPersona / escsPersona: asignaciones actuales
-        const [p, allMins, allEscs, minsPersona, escsPersona] = await Promise.all([
+        const [p, allMins, minsPersona] = await Promise.all([
           PersonasService.obtenerPorId(id),
           MinisteriosService.obtenerTodos(),
-          EscalasService.obtenerTodas(),
           MinisteriosService.obtenerPorPersona(id),
-          EscalasService.obtenerPorPersona(id),
         ])
         setPersona(p)
         setFormData(p)
 
         // Mostrar siempre el catálogo completo para poder agregar/quitar
         setMinisterios(allMins)
-        setEscalas(allEscs)
 
         // Preseleccionar lo que ya tiene la persona
         setMinisteriosSeleccionados(minsPersona.map((m) => m.id))
-        setEscalasSeleccionadas(escsPersona.map((e) => e.id))
       } catch (err: any) {
         setError(err.message || 'Error cargando persona')
       } finally {
@@ -81,14 +74,6 @@ export const EditarPersonaPage: React.FC = () => {
       prev.includes(ministerioId)
         ? prev.filter((id) => id !== ministerioId)
         : [...prev, ministerioId]
-    )
-  }
-
-  const handleEscalaToggle = (escalaId: string) => {
-    setEscalasSeleccionadas((prev) =>
-      prev.includes(escalaId)
-        ? prev.filter((id) => id !== escalaId)
-        : [...prev, escalaId]
     )
   }
 
@@ -121,11 +106,6 @@ export const EditarPersonaPage: React.FC = () => {
       await MinisteriosService.asignarAPersona(
         id,
         ministeriosSeleccionados
-      )
-
-      await EscalasService.asignarAPersona(
-        id,
-        escalasSeleccionadas
       )
 
       setSaveSuccess(true)
@@ -444,30 +424,14 @@ export const EditarPersonaPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Escalas */}
-              {escalas.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Escalas de crecimiento
-                  </label>
-                  <div className="space-y-2">
-                    {escalas.map((e) => (
-                      <label
-                        key={e.id}
-                        className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-green-50 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={escalasSeleccionadas.includes(e.id)}
-                          onChange={() => handleEscalaToggle(e.id)}
-                          className="w-4 h-4 text-green-600 border-green-300 rounded"
-                        />
-                        <span className="text-xs text-gray-700">{e.nombre}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Escalas de crecimiento
+                </label>
+                <p className="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                  El progreso de escalas se actualiza en el módulo de Seguimiento.
+                </p>
+              </div>
             </div>
 
             {/* Botones */}

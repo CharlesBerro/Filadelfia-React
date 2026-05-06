@@ -219,6 +219,9 @@ export const PersonaDetallePage: React.FC = () => {
                   ) : (
                     <p className="text-gray-500 ml-2">Sin Escala</p>
                   )}
+                  <p className="text-xs text-gray-500 ml-2 mt-1">
+                    El avance se administra desde el módulo de Seguimiento.
+                  </p>
                 </div>
 
                 <div>

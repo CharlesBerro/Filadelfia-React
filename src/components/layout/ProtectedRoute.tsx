@@ -4,12 +4,14 @@ import { useAuthStore } from '@/stores/auth.store'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  requiredRole?: 'admin' | 'usuario' | 'contador'
+  requiredRole?: 'admin' | 'lider' | 'formador' | 'usuario'
+  allowedRoles?: Array<'admin' | 'lider' | 'formador' | 'usuario'>
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRole,
+  allowedRoles,
 }) => {
   const { user, token, isLoading } = useAuthStore()
 
@@ -34,6 +36,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Si requiere rol específico y no lo tiene, redirigir
   if (requiredRole && user.role !== requiredRole && user.role !== 'admin') {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/dashboard" replace />
   }
 
