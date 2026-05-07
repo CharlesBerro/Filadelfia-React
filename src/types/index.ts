@@ -36,6 +36,7 @@ export interface Persona {
   fecha_bautismo?: string | null
   taller_maestro?: boolean
   fecha_taller_maestro?: string | null
+  es_formador?: boolean
   ministerio?: string | null
   escala_crecimiento: number
   observaciones?: string | null
@@ -66,6 +67,7 @@ export interface PersonaCreate {
   fecha_bautismo?: string | null
   taller_maestro?: boolean
   fecha_taller_maestro?: string | null
+  es_formador?: boolean
   ministerio?: string | null
   escala_crecimiento: number
   observaciones?: string | null
@@ -206,7 +208,7 @@ export interface GrupoEscala {
 
 export interface GrupoEscalaDetallado extends GrupoEscala {
   escala?: { id: string; nombre_escala: string; orden: number } | null
-  formador?: { id: string; full_name: string } | null
+  formador?: { id: string; nombres: string; primer_apellido: string; segundo_apellido?: string | null } | null
   sede?: { id: string; nombre_sede: string } | null
 }
 // Sede

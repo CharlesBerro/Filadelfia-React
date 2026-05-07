@@ -60,6 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         { icon: Users, label: 'Listado', path: '/personas' },
         { icon: FileText, label: 'Informes', path: '/personas/reportes' },
         { icon: GraduationCap, label: 'Seguimiento', path: '/seguimiento' },
+        { icon: BarChart3, label: 'Reporte Seguimiento', path: '/seguimiento/reportes' },
       ],
     },
     ...(canViewAccounting

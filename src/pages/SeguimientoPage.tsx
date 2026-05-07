@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Layout } from '@/components/layout/Layout'
 import { useAuthStore } from '@/stores/auth.store'
 import { SeguimientoService } from '@/services/seguimiento.service'
-import type { EscalaCrecimiento, GrupoEscalaDetallado, Persona, PersonaEscala, User } from '@/types'
+import { Modal } from '@/components/ui/Modal'
+import { Button } from '@/components/ui/Button'
+import type { EscalaCrecimiento, GrupoEscalaDetallado, Persona, PersonaEscala } from '@/types'
 
 type EstadoSeguimiento = 'pendiente' | 'en_curso' | 'finalizado' | 'retirado'
 
@@ -12,7 +14,7 @@ export const SeguimientoPage: React.FC = () => {
 
   const [grupos, setGrupos] = useState<GrupoEscalaDetallado[]>([])
   const [escalas, setEscalas] = useState<EscalaCrecimiento[]>([])
-  const [formadores, setFormadores] = useState<User[]>([])
+  const [formadores, setFormadores] = useState<Persona[]>([])
   const [personas, setPersonas] = useState<Persona[]>([])
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<string>('')
   const [seguimientoGrupo, setSeguimientoGrupo] = useState<Array<PersonaEscala & { persona?: Persona | null }>>([])
@@ -20,6 +22,11 @@ export const SeguimientoPage: React.FC = () => {
   const [loadingGrupo, setLoadingGrupo] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [filtroEstado, setFiltroEstado] = useState<'todos' | EstadoSeguimiento>('todos')
+  const [estadoModalOpen, setEstadoModalOpen] = useState(false)
+  const [estadoTarget, setEstadoTarget] = useState<(PersonaEscala & { persona?: Persona | null }) | null>(null)
+  const [estadoDraft, setEstadoDraft] = useState<EstadoSeguimiento>('pendiente')
+  const [fechaEstudioDraft, setFechaEstudioDraft] = useState('')
 
   const [formGrupo, setFormGrupo] = useState({
     nombre_grupo: '',
@@ -51,6 +58,20 @@ export const SeguimientoPage: React.FC = () => {
       return nombre.includes(term) || cedula.includes(term) || telefono.includes(term)
     })
   }, [personas, personaSearch])
+
+  const inscritosFiltrados = useMemo(() => {
+    if (filtroEstado === 'todos') return seguimientoGrupo
+    return seguimientoGrupo.filter((i) => (i.estado || 'pendiente') === filtroEstado)
+  }, [seguimientoGrupo, filtroEstado])
+
+  const resumenEstados = useMemo(() => {
+    const base = { pendiente: 0, en_curso: 0, finalizado: 0, retirado: 0 }
+    seguimientoGrupo.forEach((i) => {
+      const key = (i.estado || 'pendiente') as EstadoSeguimiento
+      base[key] += 1
+    })
+    return base
+  }, [seguimientoGrupo])
 
   useEffect(() => {
     if (personasFiltradas.length === 1) {
@@ -195,6 +216,20 @@ export const SeguimientoPage: React.FC = () => {
     }
   }
 
+  const abrirModalEstado = (item: PersonaEscala & { persona?: Persona | null }) => {
+    setEstadoTarget(item)
+    setEstadoDraft((item.estado || 'pendiente') as EstadoSeguimiento)
+    setFechaEstudioDraft(item.fecha_estudio || '')
+    setEstadoModalOpen(true)
+  }
+
+  const guardarEstadoModal = async () => {
+    if (!estadoTarget) return
+    await actualizarEstado(estadoTarget.id, estadoDraft, fechaEstudioDraft || undefined)
+    setEstadoModalOpen(false)
+    setEstadoTarget(null)
+  }
+
   const eliminarInscripcion = async (id: string) => {
     if (!canManageGroups) return
     if (!window.confirm('¿Eliminar esta inscripción del grupo?')) return
@@ -218,7 +253,7 @@ export const SeguimientoPage: React.FC = () => {
         <div className="max-w-7xl mx-auto space-y-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Seguimiento</h1>
-            <p className="text-gray-600">Control de grupos, formadores y avance por escalas</p>
+            <p className="text-gray-600">Control de grupos, tutores formadores y avance por escalas</p>
           </div>
 
           {loading && <p className="text-sm text-gray-600">Cargando módulo...</p>}
@@ -253,10 +288,10 @@ export const SeguimientoPage: React.FC = () => {
                       value={formGrupo.formador_id}
                       onChange={(e) => setFormGrupo((p) => ({ ...p, formador_id: e.target.value }))}
                     >
-                      <option value="">Formador</option>
+                      <option value="">Formador (persona)</option>
                       {formadores.map((f) => (
                         <option key={f.id} value={f.id}>
-                          {f.full_name}
+                          {f.nombres} {f.primer_apellido}
                         </option>
                       ))}
                     </select>
@@ -304,6 +339,25 @@ export const SeguimientoPage: React.FC = () => {
 
                 {grupoActivo && (
                   <>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                      <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
+                        <p className="text-amber-700">Pendiente</p>
+                        <p className="text-xl font-bold text-amber-900">{resumenEstados.pendiente}</p>
+                      </div>
+                      <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                        <p className="text-blue-700">En curso</p>
+                        <p className="text-xl font-bold text-blue-900">{resumenEstados.en_curso}</p>
+                      </div>
+                      <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-100">
+                        <p className="text-emerald-700">Finalizado</p>
+                        <p className="text-xl font-bold text-emerald-900">{resumenEstados.finalizado}</p>
+                      </div>
+                      <div className="bg-rose-50 rounded-lg p-3 border border-rose-100">
+                        <p className="text-rose-700">Retirado</p>
+                        <p className="text-xl font-bold text-rose-900">{resumenEstados.retirado}</p>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                       <div className="bg-gray-50 rounded-lg p-3">
                         <p className="text-gray-500">Escala</p>
@@ -311,7 +365,11 @@ export const SeguimientoPage: React.FC = () => {
                       </div>
                       <div className="bg-gray-50 rounded-lg p-3">
                         <p className="text-gray-500">Formador</p>
-                        <p className="font-medium">{grupoActivo.formador?.full_name || grupoActivo.formador_id}</p>
+                        <p className="font-medium">
+                          {grupoActivo.formador
+                            ? `${grupoActivo.formador.nombres} ${grupoActivo.formador.primer_apellido}`
+                            : grupoActivo.formador_id}
+                        </p>
                       </div>
                       <div className="bg-gray-50 rounded-lg p-3">
                         <p className="text-gray-500">Inicio</p>
@@ -386,10 +444,23 @@ export const SeguimientoPage: React.FC = () => {
                     </form>
 
                     <div className="border-t border-gray-100 pt-4">
-                      <h3 className="font-medium text-gray-900 mb-3">Personas del Grupo</h3>
+                      <div className="flex items-center justify-between gap-3 mb-3">
+                        <h3 className="font-medium text-gray-900">Personas del Grupo</h3>
+                        <select
+                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                          value={filtroEstado}
+                          onChange={(e) => setFiltroEstado(e.target.value as any)}
+                        >
+                          <option value="todos">Todos</option>
+                          <option value="pendiente">Pendiente</option>
+                          <option value="en_curso">En curso</option>
+                          <option value="finalizado">Finalizado</option>
+                          <option value="retirado">Retirado</option>
+                        </select>
+                      </div>
                       {loadingGrupo ? (
                         <p className="text-sm text-gray-600">Cargando inscripciones...</p>
-                      ) : seguimientoGrupo.length === 0 ? (
+                      ) : inscritosFiltrados.length === 0 ? (
                         <p className="text-sm text-gray-500">No hay personas inscritas.</p>
                       ) : (
                         <div className="overflow-x-auto">
@@ -405,7 +476,7 @@ export const SeguimientoPage: React.FC = () => {
                               </tr>
                             </thead>
                             <tbody>
-                              {seguimientoGrupo.map((item) => (
+                              {inscritosFiltrados.map((item) => (
                                 <tr key={item.id} className="border-t border-gray-100">
                                   <td className="px-3 py-2">
                                     {item.persona?.nombres} {item.persona?.primer_apellido}
@@ -414,20 +485,13 @@ export const SeguimientoPage: React.FC = () => {
                                   <td className="px-3 py-2">{item.fecha_estudio || '-'}</td>
                                   <td className="px-3 py-2">{item.fecha_aprobacion_manual || '-'}</td>
                                   <td className="px-3 py-2">
-                                    <select
-                                      className="border border-gray-300 rounded px-2 py-1"
-                                      value={item.estado || 'pendiente'}
-                                      onChange={(e) => {
-                                        const nuevoEstado = e.target.value as EstadoSeguimiento
-                                        const fecha = window.prompt('Fecha del estudio (YYYY-MM-DD), opcional:', item.fecha_estudio || '')
-                                        actualizarEstado(item.id, nuevoEstado, fecha || undefined)
-                                      }}
+                                    <button
+                                      type="button"
+                                      onClick={() => abrirModalEstado(item)}
+                                      className="text-blue-600 hover:text-blue-700 text-xs font-medium"
                                     >
-                                      <option value="pendiente">pendiente</option>
-                                      <option value="en_curso">en_curso</option>
-                                      <option value="finalizado">finalizado</option>
-                                      <option value="retirado">retirado</option>
-                                    </select>
+                                      Actualizar
+                                    </button>
                                   </td>
                                   {canManageGroups && (
                                     <td className="px-3 py-2">
@@ -454,6 +518,41 @@ export const SeguimientoPage: React.FC = () => {
           )}
         </div>
       </div>
+      <Modal
+        isOpen={estadoModalOpen}
+        onClose={() => setEstadoModalOpen(false)}
+        title="Actualizar estado de seguimiento"
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">
+            {estadoTarget?.persona?.nombres} {estadoTarget?.persona?.primer_apellido}
+          </p>
+          <select
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            value={estadoDraft}
+            onChange={(e) => setEstadoDraft(e.target.value as EstadoSeguimiento)}
+          >
+            <option value="pendiente">Pendiente</option>
+            <option value="en_curso">En curso</option>
+            <option value="finalizado">Finalizado</option>
+            <option value="retirado">Retirado</option>
+          </select>
+          <input
+            type="date"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            value={fechaEstudioDraft}
+            onChange={(e) => setFechaEstudioDraft(e.target.value)}
+          />
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => setEstadoModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="button" onClick={guardarEstadoModal} disabled={saving}>
+              Guardar
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </Layout>
   )
 }

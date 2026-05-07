@@ -249,6 +249,9 @@ export class PersonasService {
         .select()
 
       if (error) throw error
+      if (!data || data.length === 0) {
+        throw new Error('No tienes permisos para actualizar esta persona')
+      }
 
       // Retornar el primer elemento del array
       return (data && data.length > 0 ? data[0] : data) as Persona

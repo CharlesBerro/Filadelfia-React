@@ -33,6 +33,7 @@ const EditarTransaccionPage = lazy(() => import('@/pages/EditarTransaccionPage')
 
 const ReportesPage = lazy(() => import('@/pages/ReportesPage').then(module => ({ default: module.ReportesPage })))
 const SeguimientoPage = lazy(() => import('@/pages/SeguimientoPage').then(module => ({ default: module.SeguimientoPage })))
+const SeguimientoReportesPage = lazy(() => import('@/pages/SeguimientoReportesPage').then(module => ({ default: module.SeguimientoReportesPage })))
 const UsuariosPage = lazy(() => import('@/pages/UsuariosPage').then(module => ({ default: module.UsuariosPage })))
 const SedesPage = lazy(() => import('@/pages/SedesPage').then(module => ({ default: module.SedesPage })))
 
@@ -212,6 +213,14 @@ export const AppRoutes: React.FC = () => {
             element={
               <ProtectedRoute>
                 <SeguimientoPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/seguimiento/reportes"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'lider', 'organizador', 'formador']}>
+                <SeguimientoReportesPage />
               </ProtectedRoute>
             }
           />

@@ -424,6 +424,19 @@ export const EditarPersonaPage: React.FC = () => {
                 </div>
               )}
 
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="es_formador"
+                    checked={!!formData.es_formador}
+                    onChange={handleChange}
+                    className="w-4 h-4 text-green-600 border-green-300 rounded"
+                  />
+                  <span className="text-sm text-gray-700">Apta(o) para formador</span>
+                </label>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Escalas de crecimiento

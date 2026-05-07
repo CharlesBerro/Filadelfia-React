@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth.store'
-import type { EscalaCrecimiento, GrupoEscala, GrupoEscalaDetallado, Persona, PersonaEscala, User } from '@/types'
+import type { EscalaCrecimiento, GrupoEscala, GrupoEscalaDetallado, Persona, PersonaEscala } from '@/types'
 
 type EstadoSeguimiento = 'pendiente' | 'en_curso' | 'finalizado' | 'retirado'
 
@@ -30,11 +30,11 @@ export class SeguimientoService {
     let query = supabase
       .from('grupos_escala')
       .select(`
-        *,
-        escala:escala_id(id, nombre_escala, orden),
-        formador:formador_id(id, full_name),
-        sede:sede_id(id, nombre_sede)
-      `)
+  *,
+  escala:escala_de_crecimiento!grupos_escala_escala_id_fkey(id, nombre_escala, orden),
+  formador:persona!grupos_escala_formador_id_fkey(id, nombres, primer_apellido, segundo_apellido),
+  sede:sedes!grupos_escala_sede_id_fkey(id, nombre_sede)
+`)
       .order('created_at', { ascending: false })
 
     if (user.role === 'formador') {
@@ -95,22 +95,22 @@ export class SeguimientoService {
     return (data || []) as Array<PersonaEscala & { persona?: Persona | null }>
   }
 
-  static async obtenerFormadoresPorSede(): Promise<User[]> {
+  static async obtenerFormadoresPorSede(): Promise<Persona[]> {
     const { user } = useAuthStore.getState()
     if (!user) throw new Error('Usuario no autenticado')
 
     let query = supabase
-      .from('profiles')
+      .from('persona')
       .select(`
         id,
-        email,
-        full_name,
-        role,
+        nombres,
+        primer_apellido,
+        segundo_apellido,
         sede_id,
         created_at
       `)
-      .eq('role', 'formador')
-      .order('full_name', { ascending: true })
+      .eq('es_formador', true)
+      .order('nombres', { ascending: true })
 
     if (user.role !== 'admin') {
       query = query.eq('sede_id', user.sede_id)
@@ -119,14 +119,7 @@ export class SeguimientoService {
     const { data, error } = await query
     if (error) throw error
 
-    return (data || []).map((row: any) => ({
-      id: row.id,
-      email: row.email || '',
-      full_name: row.full_name || 'Sin nombre',
-      role: row.role,
-      sede_id: row.sede_id,
-      created_at: row.created_at || new Date().toISOString(),
-    })) as User[]
+    return (data || []) as Persona[]
   }
 
   static async obtenerPersonasDisponiblesPorSede(): Promise<Persona[]> {

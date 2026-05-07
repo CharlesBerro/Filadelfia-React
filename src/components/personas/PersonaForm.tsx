@@ -80,6 +80,7 @@ export const PersonaForm: React.FC = () => {
     fecha_bautismo: null,
     taller_maestro: false,
     fecha_taller_maestro: null,
+    es_formador: false,
     ministerio: null,
     escala_crecimiento: 1,
     url_foto: null,
@@ -658,6 +659,19 @@ export const PersonaForm: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                <div className="mt-6 fade-in">
+                  <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl input-shadow cursor-pointer hover:bg-gray-100 transition-colors duration-200">
+                    <input
+                      type="checkbox"
+                      name="es_formador"
+                      checked={!!formData.es_formador}
+                      onChange={handleChange}
+                      className="w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                    />
+                    <span className="text-base font-medium text-gray-700">¿Apta(o) para formador?</span>
+                  </label>
+                </div>
 
                 <div className="mt-6 fade-in">
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
