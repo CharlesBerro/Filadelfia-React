@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/Modal'
 import { SavingOverlay } from '@/components/ui/SavingOverlay'
 import { UserForm } from '@/components/usuarios/UserForm'
 import { UpdateEmailModal } from '@/components/usuarios/UpdateEmailModal'
+import { VerifyUserEmailModal } from '@/components/usuarios/VerifyUserEmailModal'
 import { useAuthStore } from '@/stores/auth.store'
 import { supabase } from '@/lib/supabase'
 import { createClient } from '@supabase/supabase-js'
@@ -61,6 +62,12 @@ export const UsuariosPage = () => {
     const [isUpdateEmailModalOpen, setIsUpdateEmailModalOpen] = useState(false)
     const [emailUpdateUser, setEmailUpdateUser] = useState<UserProfile | null>(null)
     const [isUpdatingEmail, setIsUpdatingEmail] = useState(false)
+    const [pendingVerification, setPendingVerification] = useState<{
+        email: string
+    } | null>(null)
+    const [isVerifyingUser, setIsVerifyingUser] = useState(false)
+    const [isResendingVerification, setIsResendingVerification] = useState(false)
+    const [verificationClient, setVerificationClient] = useState<any>(null)
 
     useEffect(() => {
         fetchUsers()
@@ -116,6 +123,7 @@ export const UsuariosPage = () => {
             } else {
                 // CREATE New User
                 const tempSupabase = createSecondaryClient()
+                setVerificationClient(tempSupabase)
 
                 const { data, error } = await tempSupabase.auth.signUp({
                     email: formData.email,
@@ -123,7 +131,10 @@ export const UsuariosPage = () => {
                     options: {
                         emailRedirectTo: undefined,
                         data: {
-                            nombre: formData.full_name
+                            nombre: formData.full_name,
+                            full_name: formData.full_name,
+                            role: formData.role,
+                            sede_id: formData.sede_id || ''
                         }
                     }
                 })
@@ -131,19 +142,15 @@ export const UsuariosPage = () => {
                 if (error) throw error
 
                 if (data.user) {
-                    // Manually create the profile (since we removed the trigger)
-                    const { error: profileError } = await supabase
-                        .from('profiles')
-                        .insert({
-                            id: data.user.id,
-                            full_name: formData.full_name,
-                            email: formData.email,
-                            role: formData.role,
-                            sede_id: formData.sede_id
+                    if (data.session) {
+                        await tempSupabase.auth.signOut()
+                    } else {
+                        setPendingVerification({
+                            email: formData.email
                         })
-
-                    if (profileError) {
-                        throw new Error('Error al crear el perfil: ' + profileError.message)
+                        setIsModalOpen(false)
+                        setIsSaving(false)
+                        return
                     }
                 }
             }
@@ -162,6 +169,65 @@ export const UsuariosPage = () => {
         } catch (error: any) {
             alert('Error: ' + error.message)
             setIsSaving(false)
+        }
+    }
+
+    const handleVerifyNewUser = async (code: string) => {
+        if (!pendingVerification || !verificationClient) return
+
+        try {
+            setIsVerifyingUser(true)
+
+            const { error } = await verificationClient.auth.verifyOtp({
+                email: pendingVerification.email,
+                token: code,
+                type: 'signup'
+            })
+
+            if (error) throw error
+
+            await verificationClient.auth.signOut()
+
+            setPendingVerification(null)
+            setVerificationClient(null)
+            setSaveSuccess(true)
+            fetchUsers()
+
+            setTimeout(() => {
+                setSaveSuccess(false)
+            }, 1500)
+        } catch (error: any) {
+            alert('Error verificando codigo: ' + (error.message || 'Codigo invalido'))
+        } finally {
+            setIsVerifyingUser(false)
+        }
+    }
+
+    const cancelPendingVerification = async () => {
+        if (!confirm('Si cancelas, el usuario quedara creado en Auth sin perfil activo. ¿Deseas cancelar?')) return
+        await verificationClient?.auth.signOut()
+        setPendingVerification(null)
+        setVerificationClient(null)
+        setIsVerifyingUser(false)
+        setIsResendingVerification(false)
+    }
+
+    const handleResendVerificationCode = async () => {
+        if (!pendingVerification || !verificationClient) return
+
+        try {
+            setIsResendingVerification(true)
+            const { error } = await verificationClient.auth.resend({
+                type: 'signup',
+                email: pendingVerification.email
+            })
+
+            if (error) throw error
+            alert('Codigo reenviado. Revisa el correo.')
+        } catch (error: any) {
+            alert('No se pudo reenviar el codigo: ' + (error.message || 'Intenta de nuevo en unos segundos'))
+        } finally {
+            setIsResendingVerification(false)
         }
     }
 
@@ -429,6 +495,16 @@ export const UsuariosPage = () => {
                     onConfirm={handleUpdateEmail}
                     currentEmail={emailUpdateUser?.email || ''}
                     isLoading={isUpdatingEmail}
+                />
+
+                <VerifyUserEmailModal
+                    isOpen={!!pendingVerification}
+                    email={pendingVerification?.email || ''}
+                    isLoading={isVerifyingUser}
+                    isResending={isResendingVerification}
+                    onVerify={handleVerifyNewUser}
+                    onResend={handleResendVerificationCode}
+                    onCancel={cancelPendingVerification}
                 />
 
                 {/* Delete Confirmation Modal */}

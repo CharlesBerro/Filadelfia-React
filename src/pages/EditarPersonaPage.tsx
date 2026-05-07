@@ -189,6 +189,8 @@ export const EditarPersonaPage: React.FC = () => {
               <FotoUploader
                 value={formData.url_foto || null}
                 onChange={(url) => setFormData((prev) => ({ ...prev, url_foto: url }))}
+                personaId={persona.id}
+                sedeId={persona.sede_id || null}
               />
             </div>
 

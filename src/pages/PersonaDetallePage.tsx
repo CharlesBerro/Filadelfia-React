@@ -8,6 +8,7 @@ import { PersonasService } from '@/services/personas.service'
 import { MinisteriosService } from '@/services/ministerios.service'
 import { EscalasService } from '@/services/escalas_services'
 import { SedesService } from '@/services/sedes.service'
+import { PrivateImage } from '@/components/ui/PrivateImage'
 import { usePersonasStore } from '@/stores/personas.store'
 import type { Persona, Ministerio, EscalaCrecimiento, Sede } from '@/types'
 import { UserCircle2, AlertTriangle, ChevronLeft, ChevronRight, Eye, Edit, Trash2, CheckCircle2 } from 'lucide-react'
@@ -147,8 +148,8 @@ export const PersonaDetallePage: React.FC = () => {
                 <div className="flex-shrink-0">
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white shadow-lg">
                     {persona.url_foto ? (
-                      <img
-                        src={persona.url_foto}
+                      <PrivateImage
+                        path={persona.url_foto}
                         alt={persona.nombres}
                         className="w-full h-full object-cover rounded-full"
                       />

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { PersonasService } from '@/services/personas.service'
 import { MinisteriosService } from '@/services/ministerios.service'
 import { EscalasService } from '@/services/escalas_services'
+import { PrivateImage } from '@/components/ui/PrivateImage'
 import { usePersonasStore } from '@/stores/personas.store'
 import { Eye, Edit2, Trash2, ChevronLeft, ChevronRight, Search, X, AlertTriangle } from 'lucide-react'
 import type { Persona, Ministerio, EscalaCrecimiento, Sede } from '@/types'
@@ -303,8 +304,8 @@ export const PersonasTable: React.FC<PersonasTableProps> = ({
                     >
                       <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold text-sm overflow-hidden relative group shrink-0">
                         {persona.url_foto ? (
-                          <img
-                            src={persona.url_foto}
+                          <PrivateImage
+                            path={persona.url_foto}
                             alt={`${persona.nombres} ${persona.primer_apellido}`}
                             className="h-full w-full object-cover"
                           />

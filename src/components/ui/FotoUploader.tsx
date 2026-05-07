@@ -4,6 +4,7 @@ import { Camera, X, Upload } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import { StorageService } from '@/services/storage.service'
 import { supabase } from '@/lib/supabase'
+import { PrivateImage } from '@/components/ui/PrivateImage'
 
 /**
  * Componente para subir foto de perfil a Supabase Storage
@@ -26,12 +27,14 @@ interface FotoUploaderProps {
   value: string | null
   onChange: (url: string | null) => void
   personaId?: string // Opcional: ID de la persona (si ya existe)
+  sedeId?: string | null
 }
 
 export const FotoUploader: React.FC<FotoUploaderProps> = ({
   value,
   onChange,
-  personaId
+  personaId,
+  sedeId
 }) => {
   const [loading, setLoading] = useState(false)
 
@@ -79,14 +82,15 @@ export const FotoUploader: React.FC<FotoUploaderProps> = ({
       }
 
       // Subir a Supabase Storage (reemplaza foto anterior si existe)
-      const publicUrl = await StorageService.replacePersonaFoto(
+      const privatePath = await StorageService.replacePersonaFoto(
         value, // URL anterior (se eliminará)
         fileToUpload,
         user.id,
-        personaId
+        personaId,
+        sedeId
       )
 
-      onChange(publicUrl)
+      onChange(privatePath)
       setLoading(false)
     } catch (error: any) {
       console.error('Error uploading image:', error)
@@ -120,8 +124,8 @@ export const FotoUploader: React.FC<FotoUploaderProps> = ({
         <div className="relative">
           <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 border-2 border-green-200 flex items-center justify-center">
             {value ? (
-              <img
-                src={value}
+              <PrivateImage
+                path={value}
                 alt="Preview"
                 className="w-full h-full object-cover"
               />
