@@ -70,6 +70,48 @@ export class SeguimientoService {
     return data as GrupoEscala
   }
 
+  static async cerrarGrupo(grupoId: string, fechaCierre?: string): Promise<GrupoEscala> {
+    const { user } = useAuthStore.getState()
+    if (!user) throw new Error('Usuario no autenticado')
+
+    const { data: grupo, error: grupoErr } = await supabase
+      .from('grupos_escala')
+      .select('id, formador_id, estado')
+      .eq('id', grupoId)
+      .single()
+
+    if (grupoErr || !grupo) throw grupoErr || new Error('Grupo no encontrado')
+
+    const canClose =
+      user.role === 'admin' ||
+      user.role === 'lider' ||
+      user.role === 'organizador' ||
+      (user.role === 'formador' && grupo.formador_id === user.id)
+
+    if (!canClose) {
+      throw new Error('No tienes permisos para cerrar este grupo')
+    }
+
+    if (grupo.estado === 'cerrado') {
+      throw new Error('Este grupo ya está cerrado')
+    }
+
+    const cierre = fechaCierre || new Date().toISOString().slice(0, 10)
+
+    const { data, error } = await supabase
+      .from('grupos_escala')
+      .update({
+        estado: 'cerrado',
+        fecha_fin_manual: cierre,
+      })
+      .eq('id', grupoId)
+      .select('*')
+      .single()
+
+    if (error) throw error
+    return data as GrupoEscala
+  }
+
   static async obtenerSeguimientoPorPersona(personaId: string): Promise<PersonaEscala[]> {
     const { data, error } = await supabase
       .from('persona_escala')

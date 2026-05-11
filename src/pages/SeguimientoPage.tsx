@@ -12,6 +12,11 @@ type EstadoSeguimiento = 'pendiente' | 'en_curso' | 'finalizado' | 'retirado'
 export const SeguimientoPage: React.FC = () => {
   const { user } = useAuthStore()
   const canManageGroups = user?.role === 'admin' || user?.role === 'lider' || user?.role === 'organizador'
+  const canCloseOwnGroup =
+    user?.role === 'admin' ||
+    user?.role === 'lider' ||
+    user?.role === 'organizador' ||
+    user?.role === 'formador'
 
   const [grupos, setGrupos] = useState<GrupoEscalaDetallado[]>([])
   const [escalas, setEscalas] = useState<EscalaCrecimiento[]>([])
@@ -75,6 +80,11 @@ export const SeguimientoPage: React.FC = () => {
     })
     return base
   }, [seguimientoGrupo])
+
+  const grupoCerrable = useMemo(() => {
+    if (!grupoActivo || grupoActivo.estado === 'cerrado' || seguimientoGrupo.length === 0) return false
+    return seguimientoGrupo.every((item) => (item.estado || 'pendiente') === 'finalizado')
+  }, [grupoActivo, seguimientoGrupo])
 
   useEffect(() => {
     if (personasFiltradas.length === 1) {
@@ -250,6 +260,30 @@ export const SeguimientoPage: React.FC = () => {
     }
   }
 
+  const cerrarGrupo = async () => {
+    if (!grupoActivo || !canCloseOwnGroup) return
+    if (!grupoCerrable) {
+      alert('Solo puedes cerrar el grupo cuando todas las personas estén finalizadas.')
+      return
+    }
+    if (!window.confirm('¿Cerrar este grupo de formación? El registro quedará guardado como cerrado.')) return
+
+    setSaving(true)
+    try {
+      await SeguimientoService.cerrarGrupo(grupoActivo.id)
+      const [gruposData, seguimientoData] = await Promise.all([
+        SeguimientoService.obtenerGruposPorSede(),
+        SeguimientoService.obtenerSeguimientoPorGrupo(grupoActivo.id),
+      ])
+      setGrupos(gruposData)
+      setSeguimientoGrupo(seguimientoData)
+    } catch (err: any) {
+      alert(err.message || 'No se pudo cerrar el grupo')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <Layout>
       <div className="min-h-full bg-gradient-to-b from-gray-50 via-white to-white px-3 py-3 sm:p-6 lg:p-8">
@@ -382,22 +416,66 @@ export const SeguimientoPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-sm">
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-xs text-gray-500">Escala</p>
-                        <p className="font-semibold text-gray-900 mt-1">{grupoActivo.escala?.nombre_escala || grupoActivo.escala_id}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-xs text-gray-500">Formador</p>
-                        <p className="font-semibold text-gray-900 mt-1">
-                          {grupoActivo.formador
-                            ? `${grupoActivo.formador.nombres} ${grupoActivo.formador.primer_apellido}`
-                            : grupoActivo.formador_id}
-                        </p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-xs text-gray-500">Inicio</p>
-                        <p className="font-semibold text-gray-900 mt-1">{grupoActivo.fecha_inicio}</p>
+                    <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-3.5 sm:p-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-base font-semibold text-gray-900">{grupoActivo.nombre_grupo}</h3>
+                            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                              grupoActivo.estado === 'cerrado'
+                                ? 'bg-gray-200 text-gray-700'
+                                : 'bg-emerald-100 text-emerald-700'
+                            }`}>
+                              {grupoActivo.estado === 'cerrado' ? 'Cerrado' : 'En formación'}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 sm:text-sm">
+                            <div className="rounded-lg border border-gray-200 bg-white px-3 py-2">
+                              <p className="text-gray-500">Escala</p>
+                              <p className="mt-1 font-semibold text-gray-900">{grupoActivo.escala?.nombre_escala || grupoActivo.escala_id}</p>
+                            </div>
+                            <div className="rounded-lg border border-gray-200 bg-white px-3 py-2">
+                              <p className="text-gray-500">Formador</p>
+                              <p className="mt-1 font-semibold text-gray-900">
+                                {grupoActivo.formador
+                                  ? `${grupoActivo.formador.nombres} ${grupoActivo.formador.primer_apellido}`
+                                  : grupoActivo.formador_id}
+                              </p>
+                            </div>
+                            <div className="rounded-lg border border-gray-200 bg-white px-3 py-2">
+                              <p className="text-gray-500">Inicio</p>
+                              <p className="mt-1 font-semibold text-gray-900">{grupoActivo.fecha_inicio}</p>
+                            </div>
+                            <div className="rounded-lg border border-gray-200 bg-white px-3 py-2">
+                              <p className="text-gray-500">Cierre</p>
+                              <p className="mt-1 font-semibold text-gray-900">{grupoActivo.fecha_fin_manual || '-'}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {canCloseOwnGroup && (
+                          <div className="sm:max-w-[240px]">
+                            <button
+                              type="button"
+                              onClick={cerrarGrupo}
+                              disabled={!grupoCerrable || grupoActivo.estado === 'cerrado' || saving}
+                              className="h-10 w-full rounded-lg bg-gray-900 px-3 text-sm font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:bg-gray-300"
+                            >
+                              {grupoActivo.estado === 'cerrado'
+                                ? 'Grupo cerrado'
+                                : saving
+                                  ? 'Guardando...'
+                                  : 'Cerrar grupo'}
+                            </button>
+                            <p className="mt-2 text-xs text-gray-500">
+                              {grupoActivo.estado === 'cerrado'
+                                ? 'El grupo quedó archivado con su fecha de cierre.'
+                                : grupoCerrable
+                                  ? 'Todos los estudiantes están finalizados. Ya puedes cerrar este grupo.'
+                                  : 'Se habilita cuando todas las personas del grupo estén finalizadas.'}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -413,6 +491,7 @@ export const SeguimientoPage: React.FC = () => {
                             className="h-10 sm:h-11 border border-gray-300 rounded-lg px-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Buscar por nombre, cédula o teléfono"
                             value={personaSearch}
+                            disabled={grupoActivo.estado === 'cerrado'}
                             onChange={(e) => setPersonaSearch(e.target.value)}
                           />
                           {personaSearch.trim() && personasFiltradas.length > 0 && (
@@ -438,6 +517,7 @@ export const SeguimientoPage: React.FC = () => {
                           <select
                             className="h-10 sm:h-11 w-full border border-gray-300 rounded-lg px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             value={formInscripcion.persona_id}
+                            disabled={grupoActivo.estado === 'cerrado'}
                             onChange={(e) => setFormInscripcion((p) => ({ ...p, persona_id: e.target.value }))}
                           >
                             <option value="">Persona</option>
@@ -453,6 +533,7 @@ export const SeguimientoPage: React.FC = () => {
                           <select
                             className="h-10 sm:h-11 w-full border border-gray-300 rounded-lg px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             value={formInscripcion.estado}
+                            disabled={grupoActivo.estado === 'cerrado'}
                             onChange={(e) => setFormInscripcion((p) => ({ ...p, estado: e.target.value as EstadoSeguimiento }))}
                           >
                             <option value="pendiente">Pendiente</option>
@@ -467,12 +548,13 @@ export const SeguimientoPage: React.FC = () => {
                             type="date"
                             className="h-10 sm:h-11 w-full border border-gray-300 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             value={formInscripcion.fecha_estudio}
+                            disabled={grupoActivo.estado === 'cerrado'}
                             onChange={(e) => setFormInscripcion((p) => ({ ...p, fecha_estudio: e.target.value }))}
                           />
                         </label>
                         <button
                           type="submit"
-                          disabled={enrollingPerson}
+                          disabled={enrollingPerson || grupoActivo.estado === 'cerrado'}
                           className="h-10 sm:h-11 inline-flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg px-3 text-sm font-semibold shadow-sm active:scale-[0.99] disabled:bg-blue-300 disabled:cursor-not-allowed md:col-span-4"
                         >
                           {enrollingPerson && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -518,7 +600,8 @@ export const SeguimientoPage: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => abrirModalEstado(item)}
-                                    className="text-blue-600 hover:text-blue-700 text-xs font-semibold"
+                                    disabled={grupoActivo.estado === 'cerrado'}
+                                    className="text-blue-600 hover:text-blue-700 text-xs font-semibold disabled:text-gray-400"
                                   >
                                     Actualizar
                                   </button>
@@ -537,7 +620,8 @@ export const SeguimientoPage: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => eliminarInscripcion(item.id)}
-                                    className="mt-3 text-red-600 hover:text-red-700 text-xs font-semibold"
+                                    disabled={grupoActivo.estado === 'cerrado'}
+                                    className="mt-3 text-red-600 hover:text-red-700 text-xs font-semibold disabled:text-gray-400"
                                   >
                                     Quitar del grupo
                                   </button>
@@ -571,7 +655,8 @@ export const SeguimientoPage: React.FC = () => {
                                     <button
                                       type="button"
                                       onClick={() => abrirModalEstado(item)}
-                                      className="text-blue-600 hover:text-blue-700 text-xs font-medium"
+                                      disabled={grupoActivo.estado === 'cerrado'}
+                                      className="text-blue-600 hover:text-blue-700 text-xs font-medium disabled:text-gray-400"
                                     >
                                       Actualizar
                                     </button>
@@ -581,7 +666,8 @@ export const SeguimientoPage: React.FC = () => {
                                       <button
                                         type="button"
                                         onClick={() => eliminarInscripcion(item.id)}
-                                        className="text-red-600 hover:text-red-700 text-xs font-medium"
+                                        disabled={grupoActivo.estado === 'cerrado'}
+                                        className="text-red-600 hover:text-red-700 text-xs font-medium disabled:text-gray-400"
                                       >
                                         Quitar
                                       </button>
