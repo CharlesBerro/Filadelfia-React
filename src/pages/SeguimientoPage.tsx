@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { SeguimientoService } from '@/services/seguimiento.service'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { Loader2 } from 'lucide-react'
 import type { EscalaCrecimiento, GrupoEscalaDetallado, Persona, PersonaEscala } from '@/types'
 
 type EstadoSeguimiento = 'pendiente' | 'en_curso' | 'finalizado' | 'retirado'
@@ -22,6 +23,8 @@ export const SeguimientoPage: React.FC = () => {
   const [loadingGrupo, setLoadingGrupo] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [creatingGroup, setCreatingGroup] = useState(false)
+  const [enrollingPerson, setEnrollingPerson] = useState(false)
   const [filtroEstado, setFiltroEstado] = useState<'todos' | EstadoSeguimiento>('todos')
   const [estadoModalOpen, setEstadoModalOpen] = useState(false)
   const [estadoTarget, setEstadoTarget] = useState<(PersonaEscala & { persona?: Persona | null }) | null>(null)
@@ -141,7 +144,7 @@ export const SeguimientoPage: React.FC = () => {
       return
     }
 
-    setSaving(true)
+    setCreatingGroup(true)
     try {
       const sedeId = user?.sede_id || ''
       const creado = await SeguimientoService.crearGrupo({
@@ -160,7 +163,7 @@ export const SeguimientoPage: React.FC = () => {
     } catch (err: any) {
       alert(err.message || 'No se pudo crear el grupo')
     } finally {
-      setSaving(false)
+      setCreatingGroup(false)
     }
   }
 
@@ -172,7 +175,7 @@ export const SeguimientoPage: React.FC = () => {
       return
     }
 
-    setSaving(true)
+    setEnrollingPerson(true)
     try {
       await SeguimientoService.inscribirPersona({
         persona_id: formInscripcion.persona_id,
@@ -195,7 +198,7 @@ export const SeguimientoPage: React.FC = () => {
         alert(msg || 'No se pudo inscribir la persona')
       }
     } finally {
-      setSaving(false)
+      setEnrollingPerson(false)
     }
   }
 
@@ -249,11 +252,11 @@ export const SeguimientoPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="min-h-full p-4 sm:p-6 lg:p-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Seguimiento</h1>
-            <p className="text-gray-600">Control de grupos, tutores formadores y avance por escalas</p>
+      <div className="min-h-full bg-gradient-to-b from-gray-50 via-white to-white px-3 py-3 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+          <div className="rounded-xl bg-white border border-gray-100 shadow-sm px-4 py-4 sm:border-0 sm:bg-transparent sm:shadow-none sm:p-0">
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-gray-900">Seguimiento</h1>
+            <p className="mt-1 max-w-xl text-sm sm:text-base text-gray-600">Control de grupos, tutores formadores y avance por escalas</p>
           </div>
 
           {loading && <p className="text-sm text-gray-600">Cargando módulo...</p>}
@@ -262,61 +265,82 @@ export const SeguimientoPage: React.FC = () => {
           {!loading && (
             <>
               {canManageGroups && (
-                <form onSubmit={crearGrupo} className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
-                  <h2 className="text-lg font-semibold text-gray-900">Crear Grupo</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                    <input
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      placeholder="Nombre del grupo"
-                      value={formGrupo.nombre_grupo}
-                      onChange={(e) => setFormGrupo((p) => ({ ...p, nombre_grupo: e.target.value }))}
-                    />
-                    <select
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      value={formGrupo.escala_id}
-                      onChange={(e) => setFormGrupo((p) => ({ ...p, escala_id: e.target.value }))}
-                    >
+                <form onSubmit={crearGrupo} className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 space-y-3 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900">Crear Grupo</h2>
+                      <p className="mt-1 text-xs sm:text-sm text-gray-500">Completa lo esencial para abrir un grupo nuevo.</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-2.5 sm:gap-3">
+                    <label className="space-y-1.5">
+                      <span className="text-xs font-medium text-gray-600 md:hidden">Nombre</span>
+                      <input
+                        className="h-10 sm:h-11 w-full border border-gray-300 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="Nombre del grupo"
+                        value={formGrupo.nombre_grupo}
+                        onChange={(e) => setFormGrupo((p) => ({ ...p, nombre_grupo: e.target.value }))}
+                      />
+                    </label>
+                    <label className="space-y-1.5">
+                      <span className="text-xs font-medium text-gray-600 md:hidden">Escala</span>
+                      <select
+                        className="h-10 sm:h-11 w-full border border-gray-300 rounded-lg px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        value={formGrupo.escala_id}
+                        onChange={(e) => setFormGrupo((p) => ({ ...p, escala_id: e.target.value }))}
+                      >
                       <option value="">Escala</option>
                       {escalas.map((e) => (
                         <option key={e.id} value={e.id}>
                           {e.orden}. {e.nombre}
                         </option>
                       ))}
-                    </select>
-                    <select
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      value={formGrupo.formador_id}
-                      onChange={(e) => setFormGrupo((p) => ({ ...p, formador_id: e.target.value }))}
-                    >
+                      </select>
+                    </label>
+                    <label className="space-y-1.5">
+                      <span className="text-xs font-medium text-gray-600 md:hidden">Formador</span>
+                      <select
+                        className="h-10 sm:h-11 w-full border border-gray-300 rounded-lg px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        value={formGrupo.formador_id}
+                        onChange={(e) => setFormGrupo((p) => ({ ...p, formador_id: e.target.value }))}
+                      >
                       <option value="">Formador (persona)</option>
                       {formadores.map((f) => (
                         <option key={f.id} value={f.id}>
                           {f.nombres} {f.primer_apellido}
                         </option>
                       ))}
-                    </select>
-                    <input
-                      type="date"
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                      value={formGrupo.fecha_inicio}
-                      onChange={(e) => setFormGrupo((p) => ({ ...p, fecha_inicio: e.target.value }))}
-                    />
+                      </select>
+                    </label>
+                    <label className="space-y-1.5">
+                      <span className="text-xs font-medium text-gray-600 md:hidden">Fecha de inicio</span>
+                      <input
+                        type="date"
+                        className="h-10 sm:h-11 w-full border border-gray-300 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        value={formGrupo.fecha_inicio}
+                        onChange={(e) => setFormGrupo((p) => ({ ...p, fecha_inicio: e.target.value }))}
+                      />
+                    </label>
                     <button
                       type="submit"
-                      disabled={saving}
-                      className="bg-green-600 text-white rounded-lg px-3 py-2 text-sm font-medium"
+                      disabled={creatingGroup}
+                      className="h-10 sm:h-11 inline-flex items-center justify-center gap-2 bg-green-600 text-white rounded-lg px-3 text-sm font-semibold shadow-sm active:scale-[0.99] disabled:bg-green-300 disabled:cursor-not-allowed"
                     >
-                      Crear
+                      {creatingGroup && <Loader2 className="w-4 h-4 animate-spin" />}
+                      {creatingGroup ? 'Creando...' : 'Crear'}
                     </button>
                   </div>
                 </form>
               )}
 
-              <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-4">
-                <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-lg font-semibold text-gray-900">Grupos</h2>
+              <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 space-y-4 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">Grupos</h2>
+                    <p className="mt-0.5 text-xs sm:text-sm text-gray-500">Selecciona un grupo para ver su estado y gestionar personas.</p>
+                  </div>
                   <select
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                    className="h-10 sm:h-11 w-full sm:w-auto sm:min-w-[280px] border border-gray-300 rounded-lg px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     value={grupoSeleccionado}
                     onChange={(e) => setGrupoSeleccionado(e.target.value)}
                   >
@@ -339,50 +363,54 @@ export const SeguimientoPage: React.FC = () => {
 
                 {grupoActivo && (
                   <>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                      <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
-                        <p className="text-amber-700">Pendiente</p>
-                        <p className="text-xl font-bold text-amber-900">{resumenEstados.pendiente}</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                      <div className="bg-amber-50 rounded-lg p-2.5 sm:p-3 border border-amber-100">
+                        <p className="text-xs font-medium text-amber-700">Pendiente</p>
+                        <p className="text-lg sm:text-xl font-bold text-amber-900">{resumenEstados.pendiente}</p>
                       </div>
-                      <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                        <p className="text-blue-700">En curso</p>
-                        <p className="text-xl font-bold text-blue-900">{resumenEstados.en_curso}</p>
+                      <div className="bg-blue-50 rounded-lg p-2.5 sm:p-3 border border-blue-100">
+                        <p className="text-xs font-medium text-blue-700">En curso</p>
+                        <p className="text-lg sm:text-xl font-bold text-blue-900">{resumenEstados.en_curso}</p>
                       </div>
-                      <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-100">
-                        <p className="text-emerald-700">Finalizado</p>
-                        <p className="text-xl font-bold text-emerald-900">{resumenEstados.finalizado}</p>
+                      <div className="bg-emerald-50 rounded-lg p-2.5 sm:p-3 border border-emerald-100">
+                        <p className="text-xs font-medium text-emerald-700">Finalizado</p>
+                        <p className="text-lg sm:text-xl font-bold text-emerald-900">{resumenEstados.finalizado}</p>
                       </div>
-                      <div className="bg-rose-50 rounded-lg p-3 border border-rose-100">
-                        <p className="text-rose-700">Retirado</p>
-                        <p className="text-xl font-bold text-rose-900">{resumenEstados.retirado}</p>
+                      <div className="bg-rose-50 rounded-lg p-2.5 sm:p-3 border border-rose-100">
+                        <p className="text-xs font-medium text-rose-700">Retirado</p>
+                        <p className="text-lg sm:text-xl font-bold text-rose-900">{resumenEstados.retirado}</p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-sm">
                       <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-gray-500">Escala</p>
-                        <p className="font-medium">{grupoActivo.escala?.nombre_escala || grupoActivo.escala_id}</p>
+                        <p className="text-xs text-gray-500">Escala</p>
+                        <p className="font-semibold text-gray-900 mt-1">{grupoActivo.escala?.nombre_escala || grupoActivo.escala_id}</p>
                       </div>
                       <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-gray-500">Formador</p>
-                        <p className="font-medium">
+                        <p className="text-xs text-gray-500">Formador</p>
+                        <p className="font-semibold text-gray-900 mt-1">
                           {grupoActivo.formador
                             ? `${grupoActivo.formador.nombres} ${grupoActivo.formador.primer_apellido}`
                             : grupoActivo.formador_id}
                         </p>
                       </div>
                       <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-gray-500">Inicio</p>
-                        <p className="font-medium">{grupoActivo.fecha_inicio}</p>
+                        <p className="text-xs text-gray-500">Inicio</p>
+                        <p className="font-semibold text-gray-900 mt-1">{grupoActivo.fecha_inicio}</p>
                       </div>
                     </div>
 
                     <form onSubmit={inscribirPersona} className="border-t border-gray-100 pt-4">
-                      <h3 className="font-medium text-gray-900 mb-3">Inscribir Persona</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                        <div className="relative">
+                      <div className="mb-3">
+                        <h3 className="font-semibold text-gray-900">Inscribir Persona</h3>
+                        <p className="mt-1 text-xs sm:text-sm text-gray-500">Busca, selecciona y define el estado inicial en un solo bloque.</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 sm:gap-3">
+                        <label className="relative space-y-1.5">
+                          <span className="text-xs font-medium text-gray-600 md:hidden">Buscar persona</span>
                           <input
-                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full"
+                            className="h-10 sm:h-11 border border-gray-300 rounded-lg px-3 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Buscar por nombre, cédula o teléfono"
                             value={personaSearch}
                             onChange={(e) => setPersonaSearch(e.target.value)}
@@ -404,50 +432,63 @@ export const SeguimientoPage: React.FC = () => {
                               ))}
                             </div>
                           )}
-                        </div>
-                        <select
-                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                          value={formInscripcion.persona_id}
-                          onChange={(e) => setFormInscripcion((p) => ({ ...p, persona_id: e.target.value }))}
-                        >
-                          <option value="">Persona</option>
-                          {personasFiltradas.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.nombres} {p.primer_apellido} ({p.numero_id})
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                          value={formInscripcion.estado}
-                          onChange={(e) => setFormInscripcion((p) => ({ ...p, estado: e.target.value as EstadoSeguimiento }))}
-                        >
-                          <option value="pendiente">pendiente</option>
-                          <option value="en_curso">en_curso</option>
-                          <option value="finalizado">finalizado</option>
-                          <option value="retirado">retirado</option>
-                        </select>
-                        <input
-                          type="date"
-                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                          value={formInscripcion.fecha_estudio}
-                          onChange={(e) => setFormInscripcion((p) => ({ ...p, fecha_estudio: e.target.value }))}
-                        />
+                        </label>
+                        <label className="space-y-1.5">
+                          <span className="text-xs font-medium text-gray-600 md:hidden">Persona</span>
+                          <select
+                            className="h-10 sm:h-11 w-full border border-gray-300 rounded-lg px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            value={formInscripcion.persona_id}
+                            onChange={(e) => setFormInscripcion((p) => ({ ...p, persona_id: e.target.value }))}
+                          >
+                            <option value="">Persona</option>
+                            {personasFiltradas.map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.nombres} {p.primer_apellido} ({p.numero_id})
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="space-y-1.5">
+                          <span className="text-xs font-medium text-gray-600 md:hidden">Estado</span>
+                          <select
+                            className="h-10 sm:h-11 w-full border border-gray-300 rounded-lg px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            value={formInscripcion.estado}
+                            onChange={(e) => setFormInscripcion((p) => ({ ...p, estado: e.target.value as EstadoSeguimiento }))}
+                          >
+                            <option value="pendiente">Pendiente</option>
+                            <option value="en_curso">En curso</option>
+                            <option value="finalizado">Finalizado</option>
+                            <option value="retirado">Retirado</option>
+                          </select>
+                        </label>
+                        <label className="space-y-1.5">
+                          <span className="text-xs font-medium text-gray-600 md:hidden">Fecha de estudio</span>
+                          <input
+                            type="date"
+                            className="h-10 sm:h-11 w-full border border-gray-300 rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            value={formInscripcion.fecha_estudio}
+                            onChange={(e) => setFormInscripcion((p) => ({ ...p, fecha_estudio: e.target.value }))}
+                          />
+                        </label>
                         <button
                           type="submit"
-                          disabled={saving}
-                          className="bg-blue-600 text-white rounded-lg px-3 py-2 text-sm font-medium"
+                          disabled={enrollingPerson}
+                          className="h-10 sm:h-11 inline-flex items-center justify-center gap-2 bg-blue-600 text-white rounded-lg px-3 text-sm font-semibold shadow-sm active:scale-[0.99] disabled:bg-blue-300 disabled:cursor-not-allowed md:col-span-4"
                         >
-                          Inscribir
+                          {enrollingPerson && <Loader2 className="w-4 h-4 animate-spin" />}
+                          {enrollingPerson ? 'Inscribiendo...' : 'Inscribir'}
                         </button>
                       </div>
                     </form>
 
                     <div className="border-t border-gray-100 pt-4">
-                      <div className="flex items-center justify-between gap-3 mb-3">
-                        <h3 className="font-medium text-gray-900">Personas del Grupo</h3>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 mb-3">
+                        <div>
+                          <h3 className="font-medium text-gray-900">Personas del Grupo</h3>
+                          <p className="mt-0.5 text-xs sm:text-sm text-gray-500">Vista compacta para revisar estado y fechas sin perder contexto.</p>
+                        </div>
                         <select
-                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                          className="h-10 w-full sm:w-auto border border-gray-300 rounded-lg px-3 text-sm bg-white"
                           value={filtroEstado}
                           onChange={(e) => setFiltroEstado(e.target.value as any)}
                         >
@@ -463,7 +504,49 @@ export const SeguimientoPage: React.FC = () => {
                       ) : inscritosFiltrados.length === 0 ? (
                         <p className="text-sm text-gray-500">No hay personas inscritas.</p>
                       ) : (
-                        <div className="overflow-x-auto">
+                        <>
+                          <div className="space-y-2 sm:hidden">
+                            {inscritosFiltrados.map((item) => (
+                              <div key={item.id} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div>
+                                    <p className="font-medium text-gray-900">
+                                      {item.persona?.nombres} {item.persona?.primer_apellido}
+                                    </p>
+                                    <p className="mt-1 text-xs text-gray-500">Estado: {item.estado || 'pendiente'}</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => abrirModalEstado(item)}
+                                    className="text-blue-600 hover:text-blue-700 text-xs font-semibold"
+                                  >
+                                    Actualizar
+                                  </button>
+                                </div>
+                                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                                  <div className="rounded-md bg-white px-2.5 py-2 border border-gray-200">
+                                    <p className="text-gray-500">Estudio</p>
+                                    <p className="mt-1 font-medium text-gray-800">{item.fecha_estudio || '-'}</p>
+                                  </div>
+                                  <div className="rounded-md bg-white px-2.5 py-2 border border-gray-200">
+                                    <p className="text-gray-500">Aprobación</p>
+                                    <p className="mt-1 font-medium text-gray-800">{item.fecha_aprobacion_manual || '-'}</p>
+                                  </div>
+                                </div>
+                                {canManageGroups && (
+                                  <button
+                                    type="button"
+                                    onClick={() => eliminarInscripcion(item.id)}
+                                    className="mt-3 text-red-600 hover:text-red-700 text-xs font-semibold"
+                                  >
+                                    Quitar del grupo
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="hidden sm:block overflow-x-auto">
                           <table className="w-full text-sm">
                             <thead className="bg-gray-50">
                               <tr>
@@ -508,7 +591,8 @@ export const SeguimientoPage: React.FC = () => {
                               ))}
                             </tbody>
                           </table>
-                        </div>
+                          </div>
+                        </>
                       )}
                     </div>
                   </>
