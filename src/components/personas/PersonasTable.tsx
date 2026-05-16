@@ -237,11 +237,11 @@ export const PersonasTable: React.FC<PersonasTableProps> = ({
               className="w-full px-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
             >
               <option value="">Estado Civil (Todos)</option>
-              <option value="Soltero">Soltero</option>
-              <option value="Casado">Casado</option>
-              <option value="Divorciado">Divorciado</option>
+              <option value="Soltero(a)">Soltero(a)</option>
+              <option value="Casado(a)">Casado(a)</option>
+              <option value="Divorciado(a)">Divorciado(a)</option>
               <option value="Viudo">Viudo</option>
-              <option value="Union Libre">UniÃ³n Libre</option>
+              <option value="Unión Libre">Unión Libre</option>
             </select>
 
             {/* Bautizado */}
@@ -514,3 +514,5 @@ export const PersonasTable: React.FC<PersonasTableProps> = ({
     </div>
   )
 }
+
+

@@ -27,6 +27,7 @@ export const PersonaDetallePage: React.FC = () => {
   const [deleting, setDeleting] = useState(false)
   const [deleteSuccess, setDeleteSuccess] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showPhotoModal, setShowPhotoModal] = useState(false)
 
   // Navigation state
   const currentIndex = personas.findIndex(p => p.id === id)
@@ -145,19 +146,27 @@ export const PersonaDetallePage: React.FC = () => {
             <div className="p-6 pb-4">
               <div className="flex items-start gap-4 mb-4">
                 {/* Avatar */}
-                <div className="flex-shrink-0">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white shadow-lg">
+                <button
+                  type="button"
+                  onClick={() => persona.url_foto && setShowPhotoModal(true)}
+                  disabled={!persona.url_foto}
+                  className={`flex-shrink-0 rounded-full transition-transform ${
+                    persona.url_foto ? 'cursor-zoom-in active:scale-95' : 'cursor-default'
+                  }`}
+                  aria-label={persona.url_foto ? 'Ver foto de la persona' : 'La persona no tiene foto'}
+                >
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white shadow-lg overflow-hidden ring-2 ring-white">
                     {persona.url_foto ? (
                       <PrivateImage
                         path={persona.url_foto}
                         alt={persona.nombres}
-                        className="w-full h-full object-cover rounded-full"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
                       <UserCircle2 className="w-12 h-12" />
                     )}
                   </div>
-                </div>
+                </button>
 
                 {/* Name and ID */}
                 <div className="flex-1 min-w-0">
@@ -321,6 +330,31 @@ export const PersonaDetallePage: React.FC = () => {
             </button>
           </div>
         </div>
+
+        <Modal
+          isOpen={showPhotoModal}
+          onClose={() => setShowPhotoModal(false)}
+          title="Foto de la persona"
+        >
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              {persona.nombres} {persona.primer_apellido} {persona.segundo_apellido || ''}
+            </p>
+            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+              {persona.url_foto ? (
+                <PrivateImage
+                  path={persona.url_foto}
+                  alt={persona.nombres}
+                  className="max-h-[70vh] w-full object-contain bg-black"
+                />
+              ) : (
+                <div className="flex h-64 items-center justify-center text-sm text-gray-500">
+                  Esta persona no tiene foto registrada.
+                </div>
+              )}
+            </div>
+          </div>
+        </Modal>
 
         {/* Delete Confirmation Modal */}
         <Modal

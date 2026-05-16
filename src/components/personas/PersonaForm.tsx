@@ -433,10 +433,10 @@ export const PersonaForm: React.FC = () => {
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none input-shadow text-gray-800 bg-white"
                     >
-                      <option value="Soltero">Soltero</option>
-                      <option value="Casado">Casado</option>
-                      <option value="UniÃ³n Libre">UniÃ³n Libre</option>
-                      <option value="Divorciado">Divorciado</option>
+                      <option value="Soltero(a)">Soltero(a)</option>
+                      <option value="Casado(a)">Casado(a)</option>
+                      <option value="Unión Libre">Unión Libre</option>
+                      <option value="Divorciado(a)">Divorciado(a)</option>
                       <option value="Viudo">Viudo</option>
                     </select>
                   </div>
@@ -710,3 +710,5 @@ export const PersonaForm: React.FC = () => {
     </>
   )
 }
+
+
