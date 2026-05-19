@@ -273,6 +273,37 @@ export const PersonasTable: React.FC<PersonasTableProps> = ({
 
       {/* TABLA */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden border border-green-100">
+        <div className="sm:hidden border-b border-green-100 bg-green-50/40 px-4 py-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">
+              {totalPages > 0 ? 'Página ' + currentPage + ' de ' + totalPages : 'Sin resultados'}
+            </p>
+            <p className="text-xs text-gray-500">
+              Mostrando {personasData.length === 0 ? 0 : indexOfFirstItem + 1}-{Math.min(indexOfLastItem, personasData.length)} de {personasData.length}
+            </p>
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="h-9 w-9 inline-flex items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Anterior"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="h-9 w-9 inline-flex items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Siguiente"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-green-50 border-b border-green-100">
